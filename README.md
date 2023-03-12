@@ -1,6 +1,5 @@
 # mcv-m6-2023-team5
 
-# M6 - Team 04
 #### Iñigo Auzmendi Iriarte	email: inigoauz.27@gmail.com		
 #### Kyryl Dubovetskyi    email: krupartea@gmail.com
 #### Michell Vargas Signoret	email: michellvsigno21@gmail.com
