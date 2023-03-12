@@ -106,6 +106,7 @@ def drawBoxes(img, det, annot, colorDet, colorAnnot, className):
     
     return img
 
+
 def group(boxes):
     # Ordenamos los boxes por su atributo frame
     boxes_sorted = sorted(boxes, key=lambda box: box.frame)
@@ -208,6 +209,16 @@ class BBox:
     @property
     def y(self):
         return self.y_center
+    
+    
+    #for the plot gif
+def update(frame):
+    x = range(10)
+    y = [frame * i for i in x]
+    plt.plot(x, y)
+    plt.title(f'Frame {frame}')
+
+
 
 
 
