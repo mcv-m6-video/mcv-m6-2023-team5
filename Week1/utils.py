@@ -1,4 +1,3 @@
-import xmltodict
 import cv2
 import numpy as np
 import itertools
@@ -6,8 +5,7 @@ from collections import OrderedDict
 import matplotlib.pyplot as plt
 import copy
 import xml.etree.ElementTree as ET
-import numpy as np
-import cv2
+import random
 
 # Read the XML file of week 1 GT annotations
 def readXMLtoAnnotation(annotationFile):
@@ -89,23 +87,53 @@ def annoToDetecFormat(annot, className):
 # Draw detection and annotation boxes in image
 def drawBoxes(img, det, annot, colorDet, colorAnnot, className):
     img = img.copy()
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
     # Draw annotations
     for obj in annot:
         if obj["name"] == className:
             # Draw box
             bbox = obj["bbox"]
-            img = cv2.rectange(img, (int(bbox[0]), int(bbox[1])), 
+            img = cv2.rectangle(img, (int(bbox[0]), int(bbox[1])), 
                                (int(bbox[2]), int(bbox[3])), colorAnnot, 3)
     
     # Draw detections
-    for i in det.shape[0]:
+    for i in range(det.shape[0]):
         # Draw box
         bbox = det[i,:]
-        img = cv2.rectange(img, (int(bbox[0]), int(bbox[1])), 
+        img = cv2.rectangle(img, (int(bbox[0]), int(bbox[1])), 
                            (int(bbox[2]), int(bbox[3])), colorDet, 3)
     
     return img
+
+
+def randomFrame(videoPath):
+    """
+    This functions reads a video and returns a random frame and the number.
+
+    Parameters
+    ----------
+    videoPath : str
+        video path.
+
+    Returns
+    -------
+    image : numpy array
+        random frame.
+    randomFrameNumber : int
+        random frame number.
+
+    """
+    vidcap = cv2.VideoCapture(videoPath)
+    # get total number of frames
+    totalFrames = vidcap.get(cv2.CAP_PROP_FRAME_COUNT)
+    randomFrameNumber=random.randint(0, totalFrames)
+    # set frame position
+    vidcap.set(cv2.CAP_PROP_POS_FRAMES,randomFrameNumber)
+    success, image = vidcap.read()
+    
+    
+    return image, randomFrameNumber
 
 
 def group(boxes):
