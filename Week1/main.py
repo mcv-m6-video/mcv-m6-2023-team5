@@ -1,5 +1,6 @@
 from utils import readXMLtoAnnotation, annoToDetecFormat, readTXTtoDet
 from metrics import voc_eval, mIoU
+from noise import add_noise
 import numpy as np
 
 annotationFile = "../ai_challenge_s03_c010-full_annotation.xml"
@@ -10,6 +11,8 @@ className = "car"
 
 annot, imageNames = readXMLtoAnnotation(annotationFile)
 imageIds, BB = annoToDetecFormat(annot, className)
+#print(imageIds)
+#print(annot['bbox'])
 
 
 # No confidence values, repeat N times with random values
@@ -17,6 +20,7 @@ N = 1#10
 apSum = 0
 for i in range(N):
     conf = np.random.rand(len(imageIds))
+    #print((imageIds, conf, BB))
     _,_, ap = voc_eval((imageIds, conf, BB), annot, imageNames, className)
     apSum += ap
 print("mAP: ", apSum/N)
@@ -25,6 +29,10 @@ miou = mIoU((imageIds, conf, BB), annot, imageNames, className)
 print("mIoU: ", miou)
 
 # Need to add noise
+noisy_gt = {}
+for ind in imageIds:
+    noisy_gt[ind] = add_noise(annot, ind, mean = 1, std = 0, dropout = 0.5, generate = 0.4)
+print("done!!!")
 
 # Task 1.2
 
