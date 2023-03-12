@@ -4,7 +4,7 @@
 #### Kyryl Dubovetskyi    email: krupartea@gmail.com
 #### Michell Vargas Signoret	email: michellvsigno21@gmail.com
 #### Razvan Apatean email: apatean.razvan@gmail.com
-#### Ayan
+#### Ayan Banerjee  emal: ab2141@cse.jgec.ac.in
 
 
 
