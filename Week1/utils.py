@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import itertools
 from collections import OrderedDict
+import matplotlib.pyplot as plt
 import copy
 import xml.etree.ElementTree as ET
 import numpy as np
