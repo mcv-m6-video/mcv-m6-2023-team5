@@ -106,25 +106,6 @@ def drawBoxes(img, det, annot, colorDet, colorAnnot, className):
     
     return img
 
-def reader(nombre_archivo):
-    # Inicializamos la lista de vectores
-    vector_list = []
-
-    # Abrimos el archivo en modo lectura
-    with open(nombre_archivo, "r") as archivo:
-        # Read the content by line
-        for linea in archivo:
-            # split by coma
-            elements = linea.strip().split(", ")
-            # casting to int or floar 
-            elements = [int(e) if e.isdigit() else float(e) if e.replace(".", "", 1).isdigit() else e for e in elements]
-            # Add a vector to the list
-            vector_list.append(elements)
-
-    # Return the list of vectors
-    return vector_list
-
-
 def group(boxes):
     # Ordenamos los boxes por su atributo frame
     boxes_sorted = sorted(boxes, key=lambda box: box.frame)
@@ -132,6 +113,38 @@ def group(boxes):
     grouped = itertools.groupby(boxes_sorted, key=lambda box: box.frame)
     # Creamos un OrderedDict con las listas de boxes agrupados
     return OrderedDict((frame, list(boxes)) for frame, boxes in grouped)
+
+def reader(nombre_archivo):
+    # Inicializamos la lista de vectores
+    vector_list = []
+    list_of_objects = []
+
+    # Abrimos el archivo en modo lectura
+    with open(nombre_archivo, "r") as archivo:
+        # Read the content by line
+        for linea in archivo:
+            # split by coma
+            elements = linea.strip().split(",")
+            try:
+               # convert each element to an integer
+               elements = [float(e) for e in elements]
+               # Add a vector to the list
+               vector_list.append(elements)
+               list_of_objects.append(BBox(elements))
+            except ValueError:
+                print(f"Error converting line '{linea.strip()}' to integers, double check data format or reader function")
+            
+    # Return the list of vectors
+    return vector_list, list_of_objects
+
+def drawBB(frame,current_frame,list_of_grouped_boxes,color,Thresh):
+    if current_frame in list_of_grouped_boxes:
+        frame_boxes= list_of_grouped_boxes[current_frame]
+        for i in range(len(frame_boxes)):
+            if frame_boxes[i].conf > Thresh:
+                   x, y, w, h = frame_boxes[i].left, frame_boxes[i].top, frame_boxes[i].width, frame_boxes[i].height
+                   cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)  # Replace (x, y, w, h) with your bounding box coordinates
+    return frame
 
 class BBox:
     def __init__(self, data):
@@ -189,6 +202,14 @@ class BBox:
     @property
     def y_max(self):
         return self.bottom
+    @property
+    def x(self):
+        return self.x_center
+    @property
+    def y(self):
+        return self.y_center
+
+
 
 
 
