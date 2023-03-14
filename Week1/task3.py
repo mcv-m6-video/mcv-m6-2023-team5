@@ -8,30 +8,40 @@ import seaborn as sns
 
 
 def decodeOpticalFlow(img):
-    flow_x = (img[:,:,0].astype(float) - 2**15) / 128
-    flow_y = (img[:,:,1].astype(float) - 2**15) / 128 
+    flow_x = (img[:,:,0].astype(float) - 2. ** 15) / 64.0
+    flow_y = (img[:,:,1].astype(float) - 2. ** 15) / 64.0
     valid = img[:,:,2].astype(bool)
     return flow_x, flow_y, valid
 
 
-def calculateMetrics(img, img_gt):
+def calculateMetrics(img, img_gt, outputFile):
     # decode the images
     x_img, y_img, valid_img = decodeOpticalFlow(img)
     x_gt, y_gt, valid_gt = decodeOpticalFlow(img_gt)
 
     # is calculated for every pixel
-    motion_vectors = np.sqrt( (x_img - x_gt)**2 + (y_img - y_gt)**2 )
+    motion_vectors = np.sqrt( np.square(x_img - x_gt) + np.square(y_img - y_gt) )
+
+    plotError(motion_vectors, outputFile)
 
     # erroneous pixels are the ones where motion_vector > 3 and are valid pixels 
     err_pixels = (motion_vectors[valid_gt == 1] > 3).sum()
 
     # calculate metrics
-    msen = np.mean(np.sqrt(motion_vectors[valid_gt == 1]))
+    msen = np.mean((motion_vectors)[valid_gt == 1])
     pepn = (err_pixels / (valid_gt == 1).sum()) * 100 # erroneous pixels / total valid pixels from the ground truth
 
     return msen, pepn
 
 
+def plotError(img, outputFile):
+    path = ".\\plots"
+    
+    plt.figure(figsize=(9, 3))
+    plt.title('Motion vectors for ' + outputFile)
+    plt.imshow(img)
+    plt.colorbar()
+    plt.savefig(path + '\\' + outputFile +'.png')
 
 
 path = ".\\results" # path for Windows
@@ -50,10 +60,10 @@ img157_GT = cv2.cvtColor(cv2.imread(os.path.join(path, img157_GT_name), cv2.IMRE
 
 
 # calculate metrics
-msen45, pepn45 = calculateMetrics(img45, img45_GT)
+msen45, pepn45 = calculateMetrics(img45, img45_GT, "45")
 print(msen45, pepn45)
 
-msen157, pepn157 = calculateMetrics(img157, img157_GT)
+msen157, pepn157 = calculateMetrics(img157, img157_GT, "157")
 print(msen157, pepn157)
 
 
