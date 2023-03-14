@@ -1,3 +1,6 @@
+Task 1: IoU,AP,mAP.
+Task 2: Temporal analysis of the results (MIoU over Time (frame)).
+Task 3: Quantitatide evaluation of optical flow.
 Task 4:
 1. Decode 16-bit .png OF representation with the "get_offset" function
 2. Compute magnitude (l2-norm) and angle (atan2) of OF
