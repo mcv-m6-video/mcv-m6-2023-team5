@@ -173,3 +173,58 @@ def voc_ap(rec, prec, use_07_metric=True):
         # and sum (\Delta recall) * prec
         ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
     return ap
+
+
+
+
+
+def mIoU_one_image(detection, anno, imagename, classname):
+    
+    # first load gt
+    # extract gt objects for this class
+    class_recs = {}
+    npos = 0
+    R = [obj for obj in anno[imagename] if obj["name"] == classname]
+    bbox = np.array([x["bbox"] for x in R])
+    det = [False] * len(R)
+    npos = npos + len(R)
+    class_recs[imagename] = {"bbox": bbox, "det": det}
+
+    
+    image_ids = detection[0]
+    BB = detection[2]
+
+    # go down dets and mark TPs and FPs
+    nd = len(image_ids)
+    iou = np.zeros(nd)
+    for d in range(nd):
+        if image_ids[d] != imagename:
+            continue
+        R = class_recs[image_ids[d]]
+        bb = BB[d, :].astype(float)
+        ovmax = -np.inf
+        BBGT = R["bbox"].astype(float)
+
+        if BBGT.size > 0:
+            # compute overlaps
+            # intersection
+            ixmin = np.maximum(BBGT[:, 0], bb[0])
+            iymin = np.maximum(BBGT[:, 1], bb[1])
+            ixmax = np.minimum(BBGT[:, 2], bb[2])
+            iymax = np.minimum(BBGT[:, 3], bb[3])
+            iw = np.maximum(ixmax - ixmin + 1.0, 0.0)
+            ih = np.maximum(iymax - iymin + 1.0, 0.0)
+            inters = iw * ih
+
+            # union
+            uni = (
+                (bb[2] - bb[0] + 1.0) * (bb[3] - bb[1] + 1.0)
+                + (BBGT[:, 2] - BBGT[:, 0] + 1.0) * (BBGT[:, 3] - BBGT[:, 1] + 1.0)
+                - inters
+            )
+
+            overlaps = inters / uni
+            ovmax = np.max(overlaps)
+            iou[d] = ovmax
+            
+    return iou.mean()
