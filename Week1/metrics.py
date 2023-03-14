@@ -101,7 +101,9 @@ def mIoU(detection, anno, imagenames, classname):
                 det[max_iou_ind] = True
                 iou_image[gt_bbox_i] = max_iou
         
-        iou_images[i] = np.mean(iou_image)
+        # Add FP to iou_image
+        iou_images[i] = np.sum(iou_image)*2 / (iou_image.shape[0] + len(det))
+        #iou_images[i] = np.mean(iou_image)
             
     return iou_images.mean()
 
