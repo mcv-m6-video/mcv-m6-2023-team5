@@ -15,9 +15,12 @@ def mIoU(detection, anno, imagenames, classname):
         npos = npos + len(R)
         class_recs[imagename] = {"bbox": bbox, "det": det}
 
-    
     image_ids = detection[0]
+    confidence = detection[1]
     BB = detection[2]
+    sorted_ind = np.argsort(-confidence)
+    BB = BB[sorted_ind, :]
+    image_ids = [image_ids[x] for x in sorted_ind]
 
     # go down dets and mark TPs and FPs
     nd = len(image_ids)

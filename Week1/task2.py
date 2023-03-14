@@ -37,7 +37,7 @@ probGen = 0.1
 annot_noise = copy.deepcopy(annot)
 annot_noise = add_noise(annot_noise, imageNames, noiseMean, noiseStd, probRem, probGen)
     
-detModel = "noise"
+detModel = "yolo3"
 detValues = detYolo3
 if detModel == "noise":
     imageIds, BB = annoToDetecFormat(annot_noise, className)
