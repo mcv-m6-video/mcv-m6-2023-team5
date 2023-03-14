@@ -1,6 +1,6 @@
 # WEEK 1 Project.
 ## Here is a list of the dependencies requirements for the week1 project and a briefly description of what each .py file do.
-### Intall requirements:
+### Install requirements:
 * numpy
 * itertools
 * collections
