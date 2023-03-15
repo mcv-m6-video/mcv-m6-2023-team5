@@ -40,7 +40,7 @@ def plotError(img, outputFile):
     path = ".\\plots"
     
     plt.figure(figsize=(9, 3))
-    plt.title('Motion vectors for ' + outputFile)
+    plt.title('Squared error for ' + outputFile)
     plt.imshow(img)
     plt.colorbar()
     plt.savefig(path + '\\' + outputFile +'.png')
@@ -50,7 +50,7 @@ def plotValid(img, outputFile):
     path = ".\\plots"
     
     plt.figure(figsize=(12,9))
-    plt.title("Ground truth for " + outputFile)
+    plt.title("Valid pixels for " + outputFile)
     plt.imshow(img, cmap='gray')
     plt.savefig(path + '\\' + outputFile +'_valid_pixels_GT.png')
 
@@ -59,15 +59,16 @@ def plotErrorHistogram(img, outputFile):
     path = ".\\plots"
     print(img.shape)
     # create the histogram
-    histogram, bin_edges = np.histogram(img, bins=50, range=(0, 1), density=False)
-    
+    histogram, bin_edges = np.histogram(img, bins=50, density=True)
+    center = (bin_edges[:-1] + bin_edges[1:]) / 2
     plt.figure()
     plt.title("Image " + outputFile + " Error Grayscale Histogram")
-    plt.xlabel("grayscale value")
-    plt.ylabel("pixel count")
-    plt.xlim([0.0, 1.0])
+    plt.xlabel("Squared error")
+    plt.ylabel("Pixel percentage")
+    plt.xlim([0, 50])
 
-    plt.plot(bin_edges[0:-1], histogram) 
+    plt.bar(center, histogram)
+    #plt.plot(bin_edges[0:-1], histogram) 
     plt.savefig(path + '\\' + outputFile +'_error_histogram.png')
 
 path = ".\\results" # path for Windows
