@@ -62,7 +62,7 @@ def plotErrorHistogram(img, outputFile):
     histogram, bin_edges = np.histogram(img, bins=50, density=True)
     center = (bin_edges[:-1] + bin_edges[1:]) / 2
     plt.figure()
-    plt.title("Image " + outputFile + " Error Grayscale Histogram")
+    plt.title("Image " + outputFile + " Squared Error Histogram")
     plt.xlabel("Squared error")
     plt.ylabel("Pixel percentage")
     plt.xlim([0, 50])
