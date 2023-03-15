@@ -22,6 +22,17 @@ def decodeOpticalFlow(img):
 
 
 def calculateMetrics(img, img_gt, outputFile):
+    """
+    Calculating The Mean Square Error and Percentage of Erroneous Pixels in non-ocluded areas
+    
+    Args:
+        img: the predicted numpy.ndarray
+        img_gt: the groundtruth of the prediction. It is also a numpy.ndarray
+        ouputFile: Where you want to save the result.
+    Return:
+        msen: Mean Square Error in non-ocluded areas.
+        pepn: Percentage of Erroneous Pixels in non-ocluded areas.
+    """
     # decode the images
     x_img, y_img, valid_img = decodeOpticalFlow(img)
     x_gt, y_gt, valid_gt = decodeOpticalFlow(img_gt)
