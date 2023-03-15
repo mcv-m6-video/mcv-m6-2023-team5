@@ -23,6 +23,8 @@ def calculateMetrics(img, img_gt, outputFile):
     motion_vectors = np.sqrt( np.square(x_img - x_gt) + np.square(y_img - y_gt) )
 
     plotError(motion_vectors, outputFile)
+    plotValid(valid_gt, outputFile)
+    plotErrorHistogram(motion_vectors[valid_gt == 1], outputFile)
 
     # erroneous pixels are the ones where motion_vector > 3 and are valid pixels 
     err_pixels = (motion_vectors[valid_gt == 1] > 3).sum()
@@ -43,6 +45,30 @@ def plotError(img, outputFile):
     plt.colorbar()
     plt.savefig(path + '\\' + outputFile +'.png')
 
+
+def plotValid(img, outputFile):
+    path = ".\\plots"
+    
+    plt.figure(figsize=(12,9))
+    plt.title("Ground truth for " + outputFile)
+    plt.imshow(img, cmap='gray')
+    plt.savefig(path + '\\' + outputFile +'_valid_pixels_GT.png')
+
+
+def plotErrorHistogram(img, outputFile):
+    path = ".\\plots"
+    print(img.shape)
+    # create the histogram
+    histogram, bin_edges = np.histogram(img, bins=50, range=(0, 1), density=False)
+    
+    plt.figure()
+    plt.title("Image " + outputFile + " Error Grayscale Histogram")
+    plt.xlabel("grayscale value")
+    plt.ylabel("pixel count")
+    plt.xlim([0.0, 1.0])
+
+    plt.plot(bin_edges[0:-1], histogram) 
+    plt.savefig(path + '\\' + outputFile +'_error_histogram.png')
 
 path = ".\\results" # path for Windows
 # predicted
@@ -65,5 +91,6 @@ print(msen45, pepn45)
 
 msen157, pepn157 = calculateMetrics(img157, img157_GT, "157")
 print(msen157, pepn157)
+
 
 
