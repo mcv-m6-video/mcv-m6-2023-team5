@@ -8,6 +8,13 @@ import seaborn as sns
 
 
 def decodeOpticalFlow(img):
+    """
+    Determine the optical flow in x and y direction
+    
+    Args: The numpy ndarrray of the image
+    Return:
+        Optical flow estimation in X and Y direction.
+    """
     flow_x = (img[:,:,0].astype(float) - 2. ** 15) / 64.0
     flow_y = (img[:,:,1].astype(float) - 2. ** 15) / 64.0
     valid = img[:,:,2].astype(bool)
