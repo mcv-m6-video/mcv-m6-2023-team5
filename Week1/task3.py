@@ -89,6 +89,8 @@ def plotErrorHistogram(img, outputFile):
     #plt.plot(bin_edges[0:-1], histogram) 
     plt.savefig(path + '\\' + outputFile +'_error_histogram.png')
 
+
+#The main function of the Task3    
 path = ".\\results" # path for Windows
 # predicted
 img45_name = "LKflow_000045_10.png"
