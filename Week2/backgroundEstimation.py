@@ -29,7 +29,7 @@ def gaussianModel(videoPath):
     num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     
     # Get 25%
-    backgroundFrames = int(num_frames * 0.1)
+    backgroundFrames = int(num_frames * 0.25)
     
     # Background model
     backgroundMean = np.zeros((height, width))
@@ -61,6 +61,51 @@ def gaussianModel(videoPath):
     
     return backgroundMean, backgroundStd, cap
 
+def objDet(foreground, imageId):
+    """
+    Function to detect bounding boxes from foreground detection.
+
+    Parameters
+    ----------
+    foreground : numpy array
+        Image with foreground estimation.
+    imageId : str
+        Image id.
+
+    Returns
+    -------
+    BB : numpy array
+        Array with the detected bboxes.
+    imageIds : list
+        Image ids.
+
+    """
+    
+    # Filter noise
+    kernel = np.ones((3,3))
+    foregroundFiltered = cv2.morphologyEx(foreground, cv2.MORPH_CLOSE, kernel)
+    # Agroup obj parts
+    kernel = np.ones((3,3))
+    foregroundFiltered = cv2.morphologyEx(foreground, cv2.MORPH_OPEN, kernel)
+    
+    # Detect obj
+    contours, _ = cv2.findContours(foregroundFiltered, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    BB = np.zeros((0,4))
+    imageIds = []
+    # Each contour one obj
+    for contour in contours:
+        
+        contour = contour[:, 0, :]
+        xmin = np.min(contour[:,0])
+        ymin = np.min(contour[:,1])
+        xmax = np.max(contour[:,0])
+        ymax = np.max(contour[:,1])
+        
+        # Stack BBoxes
+        BB = np.vstack((BB, np.array([xmin,ymin,xmax,ymax])))
+        imageIds.append(imageId)
+    
+    return BB, imageIds
 
 def estimateForeground(image, backgroundMean, backgroundStd, alpha):
     """
