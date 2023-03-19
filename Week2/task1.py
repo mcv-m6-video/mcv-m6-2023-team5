@@ -32,11 +32,12 @@ while True:
     foreground = estimateForeground(frameGray, backgroundMean, backgroundStd, 5)
     foreground = (foreground*255).astype(np.uint8)
     boxes, imageIds = objDet(foreground, imageId)
-    #plot = drawBoxes(foreground, boxes, annots[imageId], [255, 0, 0], [0, 255, 0])
+    if imageId in annots.keys():
+        plot = drawBoxes(foreground, boxes, annots[imageId], [255, 0, 0], [0, 255, 0])
     imgIds = imgIds + imageIds
     BB = np.vstack((BB,boxes))
-    #plt.imshow(plot)
-    #plt.show()
+    plt.imshow(plot)
+    plt.show()
 
 # No confidence values, repeat N times with random values
 N = 10

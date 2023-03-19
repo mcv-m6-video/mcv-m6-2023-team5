@@ -13,25 +13,30 @@ def readXMLtoAnnotation(annotationFile):
     file = ET.parse(annotationFile)
     root = file.getroot()
     
+    # Remove static objs
+    staticObjs = [0, 1, 2, 3, 4, 5, 6, 8]
+    
     annotations = {}
     image_ids = []
     # Find objects
     for child in root:
         if child.tag == "track":
-            # Get class
-            className = child.attrib["label"]
-            for obj in child:
-                frame = obj.attrib["frame"]
-                xtl = float(obj.attrib["xtl"])
-                ytl = float(obj.attrib["ytl"])
-                xbr = float(obj.attrib["xbr"])
-                ybr = float(obj.attrib["ybr"])
-                bbox = [xtl, ytl, xbr, ybr]
-                if frame in image_ids:
-                    annotations[frame].append({"name": className, "bbox": bbox})
-                else:
-                    image_ids.append(frame)
-                    annotations[frame] = [{"name": className, "bbox": bbox}]
+            # Do not take into account static objs
+            if not int(child.attrib["id"]) in staticObjs: 
+                # Get class
+                className = child.attrib["label"]
+                for obj in child:
+                    frame = obj.attrib["frame"]
+                    xtl = float(obj.attrib["xtl"])
+                    ytl = float(obj.attrib["ytl"])
+                    xbr = float(obj.attrib["xbr"])
+                    ybr = float(obj.attrib["ybr"])
+                    bbox = [xtl, ytl, xbr, ybr]
+                    if frame in image_ids:
+                        annotations[frame].append({"name": className, "bbox": bbox})
+                    else:
+                        image_ids.append(frame)
+                        annotations[frame] = [{"name": className, "bbox": bbox}]
     
     
     return annotations, image_ids
