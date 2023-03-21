@@ -15,11 +15,11 @@ def objective(trial):
     newBackgroundMean = backgroundMean.copy()
     newBackgroundStd = backgroundStd.copy()
     
-    n = trial.suggest_int('n', 1, 7, step=2)
-    nn = trial.suggest_int('nn', 11, 81, step=10)
-    contourSize = trial.suggest_int('c_size', 0, 10000,step=2500)
-    alpha = trial.suggest_int('alpha', 2, 10,step=1)
-    rho = trial.suggest_float('rho', 0, 2)
+    openKernelSize = 3
+    closeKernelSize = 81
+    minContourSize = 1000
+    rho = trial.suggest_float('rho', 0.001, 0.01)
+    alpha = trial.suggest_int('alpha', 3, 10, step=1)
     
     # Open video and set frame
     capNew = cv2.VideoCapture(videoPath)
@@ -44,8 +44,8 @@ def objective(trial):
         frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
         # Get frame
-        imageId = str(int(cap.get(cv2.CAP_PROP_POS_FRAMES)) - 1)
-
+        imageId = str(int(capNew.get(cv2.CAP_PROP_POS_FRAMES)) - 1)
+        #print(imageId)
         # Estimate foreground
         foreground = estimateForeground(frameGray, backgroundMean, backgroundStd, alpha)
         foreground = (foreground*255).astype(np.uint8)
@@ -54,7 +54,7 @@ def objective(trial):
         newBackgroundMean, newBackgroundStd = updateBackground(frameGray, foreground, newBackgroundMean, newBackgroundStd, rho)
         
         # Detect bboxes
-        boxes, imageIds, foregroundFiltered = objDet(foreground, imageId, n, nn, contourSize)
+        boxes, imageIds, foregroundFiltered = objDet(foreground, imageId, openKernelSize, closeKernelSize, minContourSize)
         
         imgIds = imgIds + imageIds
         BB = np.vstack((BB,boxes))
@@ -75,12 +75,22 @@ def objective(trial):
     score=apSum/N
     return score
 
+# Load annotations
 annots, imageNames = readXMLtoAnnotation(annotsPath, remParked = True)
 annots, imageNames = removeFirstAnnotations(552, annots, imageNames)
+# Create model
 backgroundMean, backgroundStd, cap = gaussianModel(videoPath)
 cap.release()
-study = optuna.create_study(direction='maximize')
-study.optimize(objective, n_trials=200, n_jobs = 8)
+# Do parameter search
+study_name = 'adaptative_search'  # Unique identifier of the study.
+study = optuna.create_study(study_name=study_name, storage='sqlite:///example.db', direction='maximize')
+study = optuna.create_study()
+study.optimize(objective, n_trials=50, n_jobs = 6)
+
+fig = optuna.visualization.plot_contour(study, params=["rho", "alpha"])
+fig.show()
+fig.write_image("adapatative_search.png")
+
 
 # print the best hyperparameters and score
 print(f'Best score: {study.best_value:.3f}')
