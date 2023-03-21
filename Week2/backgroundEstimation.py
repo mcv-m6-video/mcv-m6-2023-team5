@@ -138,7 +138,6 @@ def objDet(foreground, imageId, n, nn, c_size):
     kernel1 = np.ones((nn,nn))
     # Remove noise
     foregroundFiltered = cv2.morphologyEx(foreground, cv2.MORPH_OPEN, kernel)
-    
     # Agroup results
     foregroundFiltered = cv2.morphologyEx(foregroundFiltered, cv2.MORPH_CLOSE, kernel1)
     
@@ -197,6 +196,40 @@ def estimateForeground(image, backgroundMean, backgroundStd, alpha):
     
     return foreground
 
+def updateBackground(image, foreground, backgroundMean, backgroundStd, rho):
+    """
+    This function updates the modeled background (mean and standard deviation) using the new
+    frame and its foreground classification.
+
+    Parameters
+    ----------
+    image : numpy array
+        New frame image.
+    foreground : numpy array
+        The mask of the foreground.
+    backgroundMean : numpy array
+        The modeled background mean.
+    backgroundStd : numpy array
+        The modeled background std.
+    rho : float
+        Parameter to control how much to change the background model.
+
+    Returns
+    -------
+    backgroundMean : numpy array
+        The updated background mean.
+    backgroundStd : numpy array
+        The updated background std.
+
+    """
+    
+    backgroundMean[foreground == 0] = rho * image[foreground == 0] + (1 - rho) * backgroundMean[foreground == 0]
+    backgroundVar = np.square(backgroundStd)
+    backgroundVar[foreground == 0] = rho * np.square(image[foreground == 0] - backgroundMean[foreground == 0]) + (1 - rho) * backgroundVar[foreground == 0]
+    backgroundStd = np.sqrt(backgroundVar)
+    
+    return backgroundMean, backgroundStd
+
 def adaptiveModel(videoPath,alpha):
     """
     This function generates the adaptive model the by taking first 25% of frames of a video to train it 
@@ -245,4 +278,4 @@ def adaptiveModel(videoPath,alpha):
     # reset video capture to beginning of video
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
     
-    return bg_model, backgroundStd, cap
+    return bg_model, backgroundStd, cap    
