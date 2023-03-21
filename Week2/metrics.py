@@ -117,7 +117,6 @@ def voc_eval(detection, anno, imagenames, ovthresh=0.5, use_07_metric=True):
         BBox detected
     annopath: annotations
         BBox annotations
-    classname: Category name (duh)
     [ovthresh]: Overlap threshold (default = 0.5)
     [use_07_metric]: Whether to use VOC07's 11 point AP computation
         (default False)
@@ -149,10 +148,14 @@ def voc_eval(detection, anno, imagenames, ovthresh=0.5, use_07_metric=True):
     tp = np.zeros(nd)
     fp = np.zeros(nd)
     for d in range(nd):
-        R = class_recs[image_ids[d]]
+        if image_ids[d] in class_recs.keys():
+            R = class_recs[image_ids[d]]
+            BBGT = R["bbox"].astype(float)
+        else:
+            BBGT = np.array([])
         bb = BB[d, :].astype(float)
         ovmax = -np.inf
-        BBGT = R["bbox"].astype(float)
+        
 
         if BBGT.size > 0:
             # compute overlaps
