@@ -65,7 +65,10 @@ def mIoU(detection, anno, imagenames):
     
     image_ids = detection[0]
     BB = detection[2]
-    iou_images = np.zeros(len(imagenames))
+    iou_images = np.array([])
+    tp = 0
+    fn = 0
+    fp = 0
     
     # For each image
     for i, imagename in enumerate(imagenames):
@@ -99,11 +102,12 @@ def mIoU(detection, anno, imagenames):
                 det[max_iou_ind] = True
                 iou_image[gt_bbox_i] = max_iou
         
-        # Add FP to iou_image
-        iou_images[i] = np.sum(iou_image)*2 / (iou_image.shape[0] + len(det))
-        #iou_images[i] = np.mean(iou_image)
+        iou_images = np.concatenate((iou_images, iou_image))
+        tp += np.sum(iou_image != 0)
+        fn += np.sum(iou_image == 0)
+        fp += np.sum(np.array(det) == False)
             
-    return iou_images.mean()
+    return iou_images.sum()/(tp + fn + fp)
 
 def voc_eval(detection, anno, imagenames, ovthresh=0.5, use_07_metric=True):
     """rec, prec, ap = voc_eval(detection,
