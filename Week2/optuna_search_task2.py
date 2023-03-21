@@ -47,7 +47,7 @@ def objective(trial):
         imageId = str(int(capNew.get(cv2.CAP_PROP_POS_FRAMES)) - 1)
         #print(imageId)
         # Estimate foreground
-        foreground = estimateForeground(frameGray, backgroundMean, backgroundStd, alpha)
+        foreground = estimateForeground(frameGray, newBackgroundMean, newBackgroundStd, alpha)
         foreground = (foreground*255).astype(np.uint8)
         
         # Adapt background
@@ -84,7 +84,6 @@ cap.release()
 # Do parameter search
 study_name = 'adaptative_search'  # Unique identifier of the study.
 study = optuna.create_study(study_name=study_name, storage='sqlite:///example.db', direction='maximize')
-study = optuna.create_study()
 study.optimize(objective, n_trials=50, n_jobs = 6)
 
 fig = optuna.visualization.plot_contour(study, params=["rho", "alpha"])
