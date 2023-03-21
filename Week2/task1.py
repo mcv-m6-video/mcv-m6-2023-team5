@@ -17,7 +17,7 @@ closeKernelSize = 81
 minContourSize = 5000
 
 # Load annotations
-annots, imageNames = readXMLtoAnnotation(annotsPath, classObj = "car", remParked = True)
+annots, imageNames = readXMLtoAnnotation(annotsPath, remParked = True)
 annots, imageNames = removeFirstAnnotations(552, annots, imageNames)
 
 # Create single gaussian

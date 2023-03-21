@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 import random
 
 # Read the XML file of week 1 GT annotations
-def readXMLtoAnnotation(annotationFile, classObj, remParked = False):
+def readXMLtoAnnotation(annotationFile, remParked = False):
     # Read XML
     file = ET.parse(annotationFile)
     root = file.getroot()
@@ -20,13 +20,14 @@ def readXMLtoAnnotation(annotationFile, classObj, remParked = False):
         if child.tag == "track":
             # Get class
             className = child.attrib["label"]
-            if className != classObj:
-                continue
+            #if className != classObj:
+            #    continue
             for obj in child:
-                objParked = obj[0].text
-                # Do not store if it is parked and we want to remove parked objects
-                if objParked=="true" and remParked:
-                    continue
+                if className == "car":
+                    objParked = obj[0].text
+                    # Do not store if it is parked and we want to remove parked objects
+                    if objParked=="true" and remParked:
+                        continue
                 frame = obj.attrib["frame"]
                 xtl = float(obj.attrib["xtl"])
                 ytl = float(obj.attrib["ytl"])
