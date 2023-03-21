@@ -196,3 +196,53 @@ def estimateForeground(image, backgroundMean, backgroundStd, alpha):
     foreground = np.abs(image - backgroundMean) >= alpha*(backgroundStd + 2)
     
     return foreground
+
+def adaptiveModel(videoPath,alpha):
+    """
+    This function generates the adaptive model the by taking first 25% of frames of a video to train it 
+
+    Parameters
+    ----------
+    videoPath : str
+        Video path.
+
+    Returns
+    -------
+    backgrounModel : numpy array
+    backgroundStd: 
+    cap : video instance
+
+    """
+    cap = cv2.VideoCapture(videoPath)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    # define number of training frames
+    num_training_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) * 0.25)
+
+    # initialize background model
+    bg_model = None
+    backgroundStd = np.zeros((height, width))
+    # loop through each frame of the video
+    for i in range(num_training_frames):
+        # read a frame from the video
+        ret, frame = cap.read()
+        
+        if ret:
+            # convert frame to grayscale
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            
+            # update background model using first 25% of frames
+            if bg_model is None:
+                bg_model = gray.astype(np.float32)
+            else:
+                    
+                bg_model = alpha * gray.astype(np.float32) + (1 - alpha) * bg_model
+                backgroundStd= np.sqrt(alpha*((gray.astype(np.float32)-bg_model) ** 2) + (1-alpha)* (backgroundStd ** 2))
+        else:
+            break
+    backgroundStd = np.sqrt(backgroundStd)
+
+    # reset video capture to beginning of video
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    
+    return bg_model, backgroundStd, cap
