@@ -1,74 +1,95 @@
+from backgroundEstimation import gaussianModel, estimateForeground, objDet, updateBackground
+from metrics import voc_eval, mIoU
 import cv2
-import numpy as np
-from backgroundEstimation import adaptiveModel,estimateForeground, objDet
+from matplotlib import pyplot as plt
 from utils import readXMLtoAnnotation, drawBoxes, removeFirstAnnotations
-from metrics import voc_eval
-# initialize video capture
-videoPath="/home/michell/Documents/M6/AICity_data/AICity_data/train/S03/c010/vdo.avi"
-annotsPath = "/home/michell/Documents/M6/AICity_data/AICity_data/train/ai_challenge_s03_c010-full_annotation.xml"
+import numpy as np
+import imageio
 
-
-
-rho=0.008
-alpha=3
+# Paths
+videoPath = "../AICity_data/train/S03/c010/vdo.avi"
+annotsPath = "../ai_challenge_s03_c010-full_annotation.xml"
+# Parameters
+# Set parameters (found with optuna search)
+alpha = 4
+rho = 0.0175
 openKernelSize = 3
-closeKernelSize = 81
-minContourSize = 5000
+closeKernelSize = 31
+minContourSize = 1000
+# alpha': 4, 'rho': 0.017483869361442413
 
 
-bg_model, backgroundStd, cap =adaptiveModel(videoPath,rho)
 # Load annotations
 annots, imageNames = readXMLtoAnnotation(annotsPath, remParked = True)
 annots, imageNames = removeFirstAnnotations(552, annots, imageNames)
+
+
+# Create single gaussian
+backgroundMean, backgroundStd, cap = gaussianModel(videoPath, False)
+
+# Init detections
 BB = np.zeros((0, 4))
 imgIds = []
-imageId =0
 
+# Init gif frames
+int_id = 1
+gif_filtered = []
+gif_foreground = []
+gif_original = []
+gif_boxes = []
 
-num_training_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) * 0.25)
-# # reset video capture to beginning of video
-
-
-
-# loop through each frame of the video from .25% to the end
-for i in range(num_training_frames, int(cap.get(cv2.CAP_PROP_FRAME_COUNT))):
-    # read a frame from the video
+while True:
+    int_id += 1
+    
+    # Read frame
     ret, frame = cap.read()
     
-    if ret:
-        # convert frame to grayscale
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        imageId = str(int(cap.get(cv2.CAP_PROP_POS_FRAMES)) - 1)
-        # update background model using current frame
-
-        bg_model = rho * gray + (1 - rho) * bg_model
-        backgroundStd= np.sqrt(rho*((gray-bg_model) ** 2) + (1-rho)* (backgroundStd ** 2))
-        
-        
-        foreground = estimateForeground(gray, bg_model, backgroundStd, alpha)
-        foreground = (foreground*255).astype(np.uint8)
-        # display the foreground mask
-        boxes, imageIds, foregroundFiltered = objDet(foreground, imageId, openKernelSize, closeKernelSize, minContourSize)
-        if imageId in annots.keys():
-            plot = drawBoxes(foreground, boxes, annots[imageId], [255, 0, 0], [0, 255, 0])
-        else:
-            plot = drawBoxes(foreground, boxes, [], [255, 0, 0], [0, 255, 0])
-        plot = cv2.resize(plot, (500, 250))
-
-
-
-
-
-        
-        #foreground= cv2.resize(foreground, (0,0), fx=0.25, fy=0.25)
-        cv2.imshow('plot', plot)
-        #cv2.imshow('Foreground Mask', foreground)
-        
-        # wait for key press and exit if 'q' is pressed
-        if cv2.waitKey(25) & 0xFF == ord('q'):
-            break
-    else:
+    # Check if frame was successfully read
+    if not ret:
         break
+    
+    # Convert to grayscale
+    frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    # Get frame
+    imageId = str(int(cap.get(cv2.CAP_PROP_POS_FRAMES)) - 1)
+
+    # Estimate foreground
+    foreground = estimateForeground(frameGray, backgroundMean, backgroundStd, alpha)
+    foreground = (foreground*255).astype(np.uint8)
+    
+    # Adapt background
+    backgroundMean, backgroundStd = updateBackground(frameGray, foreground, backgroundMean, backgroundStd, rho)
+    
+    # Detect bboxes
+    boxes, imageIds, foregroundFiltered = objDet(foreground, imageId, openKernelSize, closeKernelSize, minContourSize)
+    
+    # Plot
+    if int_id % 10 == 0:
+        print(imageId)
+        # Resize images
+        plotOrig = cv2.resize(frameGray, (500, 250))
+        plotForeground = cv2.resize(foreground, (500, 250))
+        plotFiltered = cv2.resize(foregroundFiltered, (500, 250))
+        # Plot found bboxes
+        if imageId in annots.keys():
+            plotBoxes = drawBoxes(frameGray, boxes, annots[imageId], [255, 0, 0], [0, 255, 0])
+        else:
+            plotBoxes = drawBoxes(frameGray, boxes, [], [255, 0, 0], [0, 255, 0])
+        plotBoxes = cv2.resize(plotBoxes, (500, 250))
+        # plt.imshow(plotBoxes)
+        # plt.show()
+        
+        # Store plots
+        gif_original.append(plotOrig)
+        gif_foreground.append(plotForeground)
+        gif_filtered.append(plotFiltered)
+        gif_boxes.append(plotBoxes)
+        
+    # Store predictions
+    imgIds = imgIds + imageIds
+    BB = np.vstack((BB,boxes))
+
 # No confidence values, repeat N times with random values
 N = 10
 apSum = 0
@@ -77,9 +98,14 @@ for i in range(N):
     #print((imageIds, conf, BB))
     _,_, ap = voc_eval((imgIds, conf, BB), annots, imageNames)
     apSum += ap
-    print("mAP_: ", apSum/N) 
-print("mAP: ", apSum/N)    
+print("mAP: ", apSum/N)
 
-# release video capture and destroy windows
-cap.release()
-cv2.destroyAllWindows()
+# Estimate miou
+miou = mIoU((imgIds, conf, BB), annots, imageNames)
+print("mIoU: ", miou)
+
+# Save gifs
+imageio.mimsave('adapt_orig' + str(alpha) + "_" + str(rho) + '.gif', gif_original, fps=2)
+imageio.mimsave('adapt_foreground' + str(alpha) + "_" + str(rho) + '.gif', gif_foreground, fps=2)
+imageio.mimsave('adapt_filtered' + str(alpha) + "_" + str(rho) + '.gif', gif_filtered, fps=2)
+imageio.mimsave('adapt_boxes' + str(alpha) + "_" + str(rho) + '.gif', gif_boxes, fps=2)

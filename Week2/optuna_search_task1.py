@@ -17,7 +17,7 @@ def objective(trial):
     #nn = 11#51
     contourSize = trial.suggest_int('c_size', 5000, 20000,step=5000)
     
-    #♠contourSize = 5000#17000
+    #contourSize = 5000#17000
     alpha = trial.suggest_int('alpha', 5, 14,step=1)
     #alpha = 7
     
@@ -51,20 +51,12 @@ def objective(trial):
         foreground = estimateForeground(frameGray, backgroundMean, backgroundStd, alpha)
         foreground = (foreground*255).astype(np.uint8)
         boxes, imageIds, img1 = objDet(foreground, imageId,n,nn,contourSize)
-        # if int_id % 5 == 0:
-        #     if imageId in annots.keys():
-        #         plot = drawBoxes(foreground, boxes, annots[imageId], [255, 0, 0], [0, 255, 0])
-        #         plt.imshow(plot)
-        #         plt.show()
-        #         plot = drawBoxes(img1, boxes, annots[imageId], [255, 0, 0], [0, 255, 0])
-        #         plt.imshow(plot)
-        #         plt.show()
+
         imgIds = imgIds + imageIds
         BB = np.vstack((BB,boxes))
         
     
-    # plt.imshow(img1)
-    # plt.show()
+    
     capNew.release()
     # No confidence values, repeat N times with random values
     N = 10
@@ -78,12 +70,12 @@ def objective(trial):
     score=apSum/N
     return score
 
-annots, imageNames = readXMLtoAnnotation(annotsPath, classObj = "car", remParked = True)
+annots, imageNames = readXMLtoAnnotation(annotsPath, remParked = True)
 annots, imageNames = removeFirstAnnotations(552, annots, imageNames)
 backgroundMean, backgroundStd, cap = gaussianModel(videoPath)
 cap.release()
 study = optuna.create_study(direction='maximize')
-study.optimize(objective, n_trials=200)
+study.optimize(objective, n_trials=200, n_jobs = 3)
 
 # print the best hyperparameters and score
 print(f'Best score: {study.best_value:.3f}')

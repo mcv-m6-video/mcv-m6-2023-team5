@@ -18,8 +18,8 @@ def objective(trial):
     openKernelSize = 3
     closeKernelSize = 81
     minContourSize = 1000
-    rho = trial.suggest_float('rho', 0.001, 0.01)
-    alpha = trial.suggest_int('alpha', 3, 10, step=1)
+    rho = trial.suggest_float('rho', 0.001, 0.05)
+    alpha = trial.suggest_int('alpha', 2, 10, step=1)
     
     # Open video and set frame
     capNew = cv2.VideoCapture(videoPath)
@@ -82,13 +82,13 @@ annots, imageNames = removeFirstAnnotations(552, annots, imageNames)
 backgroundMean, backgroundStd, cap = gaussianModel(videoPath)
 cap.release()
 # Do parameter search
-study_name = 'adaptative_search'  # Unique identifier of the study.
+study_name = 'adaptative_search3'  # Unique identifier of the study.
 study = optuna.create_study(study_name=study_name, storage='sqlite:///example.db', direction='maximize')
-study.optimize(objective, n_trials=50, n_jobs = 6)
+study.optimize(objective, n_trials=50, n_jobs = 10)
 
 fig = optuna.visualization.plot_contour(study, params=["rho", "alpha"])
 fig.show()
-fig.write_image("adapatative_search.png")
+fig.write_image("adapatative_search3.png")
 
 
 # print the best hyperparameters and score
