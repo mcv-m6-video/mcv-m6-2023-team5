@@ -6,7 +6,7 @@ backgroundEstimation.py
 
 
 optuna_search_task1.py
-    Hyper parameter search: erotion kernel, dilation kernel, alpha,
+    Hyper parameter search: erosion kernel, dilation kernel, alpha,
     contour threshold
 
 
