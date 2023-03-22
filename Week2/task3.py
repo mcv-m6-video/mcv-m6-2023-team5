@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import matplotlib.animation as animation
 from tqdm import tqdm
 from PIL import Image
-from utils import readDetectionsXML, getBBmask, drawBBs
+from task3_aux import readDetectionsXML, getBBmask, drawBBs, getNotParkedCars
 from task3_eval import *
 
 def plot_prec_recall_curve(prec, rec, title='Precision-Recall curve', xAxis='Recall', yAxis='Precision'):
@@ -112,23 +112,77 @@ def remove_background3(videoPath, ROIpath, fgbg):
             detections[str(frame)] = getBBmask(cleaned)
     return detections
 
-
+mog = mog = cv2.bgsegm.createBackgroundSubtractorMOG()
 mog2 = cv2.createBackgroundSubtractorMOG2()
 lsbp = cv2.bgsegm.createBackgroundSubtractorLSBP()
+gmg = cv2.bgsegm.createBackgroundSubtractorGMG()
+knn = cv2.createBackgroundSubtractorKNN()
 
 
-data_path = 'AICity_data/AICity_data/train/S03/c010/'
-gt_path = readDetectionsXML('AICity_data/AICity_data/train/S03/c010/ai_challenge_s03_c010-full_annotation.xml')
+data_path = 'AICity_data/train/S03/c010/'
+gt_path = readDetectionsXML('ai_challenge_s03_c010-full_annotation.xml')
+gt_path = getNotParkedCars(gt_path)
 
 #MOG2
 MOG2_detections = remove_background3(data_path + 'vdo.avi', data_path + 'roi.jpg', mog2)
 rec, prec, ap = voc_eval(gt_path, MOG2_detections, 0.5, False)
-plot_prec_recall_curve(prec, rec, f'Precision-Recall curve for MOG - AP {ap}')
+plot_prec_recall_curve(prec, rec, f'Precision-Recall curve for MOG2 - AP {ap}')
 generate_BB_comparison(data_path + 'vdo.avi', gt_path, MOG2_detections, videoName='videoBoundingBox_MOG2')
 
 #LSBP
 LSBP_detections = remove_background3(data_path + 'vdo.avi', data_path + 'roi.jpg', lsbp)
 rec, prec, ap = voc_eval(gt_path, LSBP_detections, 0.5, False)
-plot_prec_recall_curve(prec, rec, f'Precision-Recall curve for MOG2 - AP {ap}')
-generate_BB_comparison(data_path + 'vdo.avi', gt_path, MOG2_detections, videoName='videoBoundingBox_LSBP')
+plot_prec_recall_curve(prec, rec, f'Precision-Recall curve for LSBP - AP {ap}')
+generate_BB_comparison(data_path + 'vdo.avi', gt_path, LSBP_detections, videoName='videoBoundingBox_LSBP')
 
+#MOG
+MOG_detections = remove_background3(data_path + 'vdo.avi', data_path + 'roi.jpg', mog)
+rec, prec, ap = voc_eval(gt_path, MOG_detections, 0.5, False)
+plot_prec_recall_curve(prec, rec, f'Precision-Recall curve for MOG - AP {ap}')
+generate_BB_comparison(data_path + 'vdo.avi', gt_path, MOG_detections, videoName='videoBoundingBox_MOG')
+
+#GMG
+GMG_detections = remove_background3(data_path + 'vdo.avi', data_path + 'roi.jpg', gmg)
+rec, prec, ap = voc_eval(gt_path, GMG_detections, 0.5, False)
+plot_prec_recall_curve(prec, rec, f'Precision-Recall curve for GMG - AP {ap}')
+generate_BB_comparison(data_path + 'vdo.avi', gt_path, GMG_detections, videoName='videoBoundingBox_GMG')
+
+#KNN
+KNN_detections = remove_background3(data_path + 'vdo.avi', data_path + 'roi.jpg', knn)
+rec, prec, ap = voc_eval(gt_path, KNN_detections, 0.5, False)
+plot_prec_recall_curve(prec, rec, f'Precision-Recall curve for KNN - AP {ap}')
+generate_BB_comparison(data_path + 'vdo.avi', gt_path, KNN_detections, videoName='videoBoundingBox_KNN')
+
+#plot all together
+plt.figure(figsize=(16,8)) 
+rec, prec, ap = voc_eval(gt_path, MOG_detections, 0.5, False)
+# plotting the points
+plt.plot(rec, prec, label = "MOG")
+rec, prec, ap = voc_eval(gt_path, MOG2_detections, 0.5, False)
+# plotting the points
+plt.plot(rec, prec, label = "MOG2")
+
+rec, prec, ap = voc_eval(gt_path, LSBP_detections, 0.5, False)
+# plotting the points
+plt.plot(rec, prec, label = "LSBP")
+
+rec, prec, ap = voc_eval(gt_path, GMG_detections, 0.5, False)
+# plotting the points
+plt.plot(rec, prec, label = "GMG")
+
+rec, prec, ap = voc_eval(gt_path, KNN_detections, 0.5, False)
+# plotting the points
+plt.plot(rec, prec, label = "KNN")
+
+# naming the x axis
+plt.xlabel("Precision")
+# naming the y axis
+plt.ylabel("Recall")
+
+# giving a title to my graph
+plt.title("Precision-Recall curve Comparsion")
+plt.legend()
+
+# function to show the plot
+plt.show()
+     
