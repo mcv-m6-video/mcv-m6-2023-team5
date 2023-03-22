@@ -12,6 +12,8 @@ In the second week of the project, our primary focus was on estimating the backg
 	* ``optuna_search_task2.py`` : This script can be used to do a parameter search and estimate the best values for alpha and rho. The number of trials can be adjusted.
 
 * **Task 3**: Evaluate state-of-the-art
+	* ``task3.py`` : This script can be used to compare the state-of-the-art approaches and plot their corresponding precision-recall curve.
+	* ``task3_aux.py``: Contains all the helper functions related to the task3.
 	
 * **Task 4**: Colour sequences
 	* ``task4.py``: This script models the background with respect to the HSV, LAB, and RGB color models. It estimates the background using all-channel or any-channel voting.
