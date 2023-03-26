@@ -30,8 +30,8 @@ for fold in fold_type:
         pathOutput = "../output/"
         pretrainedFile = "../detr-r50-e632da11.pth"
         backbone = "resnet50"
-        batchSize = 1
-        epochs = 20
+        batchSize = 8
+        epochs = 50
         
         # Create folder of outputs
         if not os.path.exists(pathOutput):
