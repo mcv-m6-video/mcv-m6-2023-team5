@@ -53,7 +53,7 @@ def rescale_bboxes(out_bbox, size):
     b = b * torch.tensor([img_w, img_h, img_w, img_h], dtype=torch.float32)
     return b
 
-def initDetr(device):
+def initDetr(device, fineTunedModel = None):
     """
     This function inits the DETR model with COCO pretrained weights.
 
@@ -69,7 +69,10 @@ def initDetr(device):
 
     """
     # Load model and set as eval
-    model = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=True)
+    model = torch.hub.load('facebookresearch/detr', 'detr_resnet50', pretrained=True)
+    if fineTunedModel is not None:
+        checkpoint = torch.load(fineTunedModel, map_location='cpu')
+        model.load_state_dict(checkpoint['model'])
     
     # Model to device
     model = model.to(device)
