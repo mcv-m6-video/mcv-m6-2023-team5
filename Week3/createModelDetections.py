@@ -16,7 +16,7 @@ import time
 device = "cuda"
 # Path
 videoPath = "../AICity_data/train/S03/c010/vdo.avi"
-modelWeights = "./rand0_output/checkpoint.pth"
+modelWeights = "./rand1_output/checkpoint.pth"
 
 # Load video
 cap = cv2.VideoCapture(videoPath)
@@ -25,7 +25,7 @@ cap = cv2.VideoCapture(videoPath)
 model = initDetr(device, modelWeights)
 
 # Open file
-f = open("det_yolov8.txt", "w")
+f = open("det_detr.txt", "w")
 
 # Init detections
 BB = np.zeros((0, 4))

@@ -127,7 +127,7 @@ def inferDetr(model, image, device, confThresh = 0.5):
     # Get only bicycle and car predictions
     arg = probas.argmax(axis = 1)
     keep = torch.logical_or((arg == 3).cpu(), (arg == 2).cpu())
-    probas = probas[keep, 3]
+    probas = probas[keep, arg[keep]]
     bboxes_scaled = bboxes_scaled[keep, :]
     
     

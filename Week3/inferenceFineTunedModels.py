@@ -59,9 +59,10 @@ def removeKeys(dictionary, keys):
 # Set device    
 device = "cuda"
 # Path
-datasetPath = "./datasetSplits/reg_0/train2017/"
+datasetPath = "./datasetSplits/rand_0/val2017/"
 annotsPath = "../ai_challenge_s03_c010-full_annotation.xml"
-modelWeights = "./reg0_output_lr0.0001/checkpoint.pth"
+modelFineTuningType = "rand0_output"
+modelWeights = "./" + modelFineTuningType + "/checkpoint.pth"
 
 # Load annotations
 annots, imageNames = readXMLtoAnnotation(annotsPath, remParked = False)
@@ -128,4 +129,4 @@ print("mAP: ", ap)
 miou = mIoU((imgIds, confs, BB), annots, imageNames)
 print("mIoU: ", miou)
 
-imageio.mimsave('adapt_boxes.gif', gif_boxes, fps=2)
+imageio.mimsave('results_fine_tuned' + modelFineTuningType + '.gif', gif_boxes, fps=2)
