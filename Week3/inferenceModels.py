@@ -7,6 +7,7 @@ from detrModel import initDetr, inferDetr
 from yolov8model import initYoloV8, inferYoloV8
 from fasterModel import initFaster, inferFaster
 import matplotlib.pyplot as plt
+import time
 
 # COCO classes
 CLASSES = [
@@ -45,12 +46,14 @@ annots, imageNames = readXMLtoAnnotation(annotsPath, remParked = False)
 cap = cv2.VideoCapture(videoPath)
 
 # Load model
-model = initFaster(device)
+model = initDetr(device)
 
 # Init detections
 BB = np.zeros((0, 4))
 imgIds = []
 confs = np.array([])
+
+inferenceTimes = []
 
 while True:
     
@@ -66,7 +69,10 @@ while True:
     print(imageId)
     
     # Inference model
-    conf, BBoxes = inferFaster(model, frame, device, 0.5)
+    startTime = time.time()
+    conf, BBoxes = inferDetr(model, frame, device, 0.5)
+    stopTime = time.time()
+    inferenceTimes.append(stopTime - startTime)
     BBoxes = BBoxes.cpu().detach().numpy()
     conf = conf.cpu().detach().numpy()
     imageIds = [imageId]*len(conf)
@@ -84,3 +90,6 @@ print("mAP: ", ap)
 # Estimate mIoU
 miou = mIoU((imgIds, confs, BB), annots, imageNames)
 print("mIoU: ", miou)
+
+# Mean inference time
+print("Mean inference time (sec/frame): ", np.mean(np.array(inferenceTimes)))

@@ -125,7 +125,7 @@ for i, (test, train) in enumerate(kf.split(images)):
 # 4-fold random split
 # Get folds
 k = 4
-kf = KFold(n_splits=k, shuffle=True)
+kf = KFold(n_splits=k, shuffle=True, random_state = 44)
 for i, (test, train) in enumerate(kf.split(images)):
     
     newFolder = folderAnnots + "rand_" + str(i) + "/"

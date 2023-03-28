@@ -2,12 +2,13 @@ import torchvision.transforms as T
 import cv2
 import numpy as np
 from metrics import voc_eval, mIoU
-from utils import readXMLtoAnnotation
+from utils import readXMLtoAnnotation, drawBoxes
 from detrModel import initDetr, inferDetr
 from yolov8model import initYoloV8, inferYoloV8
 from fasterModel import initFaster, inferFaster
 import matplotlib.pyplot as plt
 import os
+import imageio
 
 # COCO classes
 CLASSES = [
@@ -58,9 +59,9 @@ def removeKeys(dictionary, keys):
 # Set device    
 device = "cuda"
 # Path
-datasetPath = "./datasetSplits/reg_0/val2017/"
+datasetPath = "./datasetSplits/reg_0/train2017/"
 annotsPath = "../ai_challenge_s03_c010-full_annotation.xml"
-modelWeights = "./datasetSplits/reg0_output/checkpoint.pth"
+modelWeights = "./reg0_output_lr0.0001/checkpoint.pth"
 
 # Load annotations
 annots, imageNames = readXMLtoAnnotation(annotsPath, remParked = False)
@@ -80,7 +81,13 @@ BB = np.zeros((0, 4))
 imgIds = []
 confs = np.array([])
 
+# Init gif frame list
+gif_boxes = []
+
+int_id = -1
+
 for img in imageNames:
+    int_id += 1
     
     # Read image
     frame = cv2.imread(datasetPath + img + ".jpg")  
@@ -93,6 +100,20 @@ for img in imageNames:
     conf = conf.cpu().detach().numpy()
     imageIds = [imageId]*len(conf)
     
+    # Plot
+    if int_id % 10 == 0:
+        print(imageId)
+        
+        if imageId in annots.keys():
+            plotBoxes = drawBoxes(frame, BBoxes, annots[imageId], [255, 0, 0], [0, 255, 0])
+        else:
+            plotBoxes = drawBoxes(frame, BBoxes, [], [255, 0, 0], [0, 255, 0])
+        
+        plotBoxes = cv2.resize(plotBoxes, (500, 250))
+        
+        # Store plots
+        gif_boxes.append(plotBoxes)
+        
     # Store predictions
     imgIds = imgIds + imageIds
     BB = np.vstack((BB,BBoxes))
@@ -106,3 +127,5 @@ print("mAP: ", ap)
 # Estimate mIoU
 miou = mIoU((imgIds, confs, BB), annots, imageNames)
 print("mIoU: ", miou)
+
+imageio.mimsave('adapt_boxes.gif', gif_boxes, fps=2)

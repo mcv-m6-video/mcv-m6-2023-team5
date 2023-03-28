@@ -6,59 +6,7 @@ import matplotlib.pyplot as plt
 import copy
 import xml.etree.ElementTree as ET
 import random
-def readXMLtoMot(annotationFile, motFile, remParked=False):
-    '''
-    This function reads the xml annotationFile and writes the data in MOT format
-    # Example usage:
-    xml_file_path = "/home/user/Documents/M6/ai_challenge_s03_c010-full_annotation.xml"
-    mot_file_path = '/home/user/Documents/M6/mot.txt'
-    readXMLtoAnnotation(xml_file_path ,mot_file_path,remParked = False)
-    '''
-    # Read XML
-    file = ET.parse(annotationFile)
-    root = file.getroot()
 
-    annotations = {}
-    image_ids = []
-    # Find objects
-    for child in root:
-        if child.tag == "track":
-            # Get class
-            className = "-1" #child.attrib["label"]
-            for obj in child:
-                # if className == "car":
-                #     objParked = obj[0].text
-                #     # Do not store if it is parked and we want to remove parked objects
-                #     if objParked=="true" and remParked:
-                #         continue
-                frame = obj.attrib["frame"]
-                
-                xtl = float(obj.attrib["xtl"])
-                ytl = float(obj.attrib["ytl"])
-                xbr = float(obj.attrib["xbr"])
-                ybr = float(obj.attrib["ybr"])
-                bbox = [round(xtl,2), round(ytl,2), round((xbr - xtl),2), round((ybr - ytl),2)]  # Convert to [left, top, width, height] format
-                conf = 1  # Set the confidence to 1.0
-                x, y, z = -1, -1, -1  # Set the x, y, and z coordinates to 0.0
-                if frame in image_ids:
-                    annotations[frame].append({"id": className, "bbox": bbox, "conf": conf, "x": x, "y": y, "z": z})
-                else:
-                    image_ids.append(frame)
-                    annotations[frame] = [{"id": className, "bbox": bbox, "conf": conf, "x": x, "y": y, "z": z}]
-
-    # Write the annotations to a text file in MOT format
-    with open(motFile, "w") as f:
-        for frame, objs in annotations.items():
-            for obj in objs:
-                id = obj["id"]
-                bbox = obj["bbox"]
-                conf = obj["conf"]
-                x = obj["x"]
-                y = obj["y"]
-                z = obj["z"]
-                f.write(f"{frame},{id},{bbox[0]},{bbox[1]},{bbox[2]},{bbox[3]},{conf},{x},{y},{z}\n")
-
-    return image_ids
 # Read the XML file of week 1 GT annotations
 def readXMLtoAnnotation(annotationFile, remParked = False):
     # Read XML
