@@ -45,7 +45,7 @@ while True:
         break
     
     # Get frame
-    imageId = str(int(cap.get(cv2.CAP_PROP_POS_FRAMES)) - 1)
+    imageId = str(int(cap.get(cv2.CAP_PROP_POS_FRAMES)))
     print(imageId)
     
     # Inference model
