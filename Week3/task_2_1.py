@@ -42,32 +42,36 @@ def bb_intersection_over_union(boxA, boxB):
 def computeOverlapMaximization(dict, current_id, nr_frames, threshold = 0.8):
 
     result = []
-    [result.append(x) for x in dict[0]] # attach the first frames
+    [result.append(x) for x in dict[1]] # attach the first frames
 
     # check last 5 previous frames for a bounding box (in case of occlusions)
     BACK_IN_TIME_FRAMES = 5
     
     # start from second frame, as the first one has the IDs
-    for current_frame in range(1, nr_frames+1):
+    for current_frame in range(2, nr_frames+1):
+        # Do not repeat assigments
+        alreadyAssigId = []
         for current_frame_detection in dict[current_frame]: # take all bboxes from current frame
             IoUValue = float('-inf')
             assignedID = -1
 
-            previous_frames = [*range(max(current_frame - BACK_IN_TIME_FRAMES, 0), current_frame)]
+            previous_frames = [*range(max(current_frame - BACK_IN_TIME_FRAMES, 1), current_frame)]
     
             previous_detections = [det for key in previous_frames for det in dict.get(key)]
             
             for previous_detection in previous_detections:
                 IoU = computeIoU(current_frame_detection, previous_detection)
                 
-                if(IoU >= threshold and IoU > IoUValue): # get the maximum IoU above the threshold
+                if(IoU >= threshold and IoU > IoUValue and not (previous_detection[1] in alreadyAssigId)): # get the maximum IoU above the threshold
                     IoUValue = IoU
                     assignedID = previous_detection[1]
                     
             if assignedID != -1:
                 current_frame_detection[1] = assignedID
+                alreadyAssigId.append(assignedID)
             elif assignedID == -1: # didn't find anything that has an IoU big enought
                 current_frame_detection[1] = current_id # new detection
+                alreadyAssigId.append(current_id)
                 current_id += 1
             
             result.append(current_frame_detection)
@@ -80,7 +84,7 @@ if __name__ == '__main__':
     input_file = "det_detr.txt"
     seq_dets = np.loadtxt(input_file, delimiter=',') # array with every line in the file
 
-    current_ID = 0
+    current_ID = 1
     # create dictionary to store the detections from each frame (faster than list) in paris <FRAME_NR, DETECTIONS_ARRAY>
     dict = {}
     nr_frames = 0
@@ -92,29 +96,46 @@ if __name__ == '__main__':
         rest = detection[2:7] 
         rest[2:4] += rest[0:2] # convert from [x, y, bb_width, bb_height] to [x1, y1, x2, y2]
 
-        if(frame == 0):
+        if(frame == 1):
             id = current_ID # set the first bboxes IDs in the first frame
             current_ID += 1
         
         if frame in dict:
-            det = [frame, id, rest[0], rest[1], rest[2], rest[3]]
+            det = [frame, id, rest[0], rest[1], rest[2], rest[3], rest[4]]
             dict[frame] = dict[frame] + [det]
         else:
-            bb_nr_in_frame = 0
-            det = [frame, id, rest[0], rest[1], rest[2], rest[3]]
+            det = [frame, id, rest[0], rest[1], rest[2], rest[3], rest[4]]
             dict[frame] = [det]
 
-    result = computeOverlapMaximization(dict, current_ID, nr_frames)
+    results = computeOverlapMaximization(dict, current_ID, nr_frames)
 
-    print(result[0])
+    #print(result[0])
 
 
     # TO BE COMPLETED
-    output_file = 'task21_output.txt'
-    with open(output_file, 'w') as f:
-        for detection in result:
-            f.write(f"{detection}\n")
+    output_file = 'iou_based_tracking.txt'
+    # Open file
+    f = open(output_file, "w")
+    
+    initial = True
+    
+    for result in results:
+        imageId = str(result[0])
+        objId = str(result[1])
+        x = result[2]
+        y = result[3]
+        w = result[4] - result[2]
+        h = result[5] - result[3]
+        conf = result[6]
+        if initial:
+            line = imageId + "," + objId + ",{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},-1,-1,-1".format(x, y, w, h, conf)
+            initial = False
+        else:
+            line = "\n" + imageId + "," + objId + ",{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},-1,-1,-1".format(x, y, w, h, conf)
 
+        f.write(line)
+        
+    # Close txt
     f.close()
 
 
