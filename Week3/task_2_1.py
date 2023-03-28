@@ -84,7 +84,6 @@ if __name__ == '__main__':
     # create dictionary to store the detections from each frame (faster than list) in paris <FRAME_NR, DETECTIONS_ARRAY>
     dict = {}
     nr_frames = 0
-    bb_nr_in_frame = 0
 
     for detection in seq_dets:
         frame = int(detection[0])
@@ -98,14 +97,12 @@ if __name__ == '__main__':
             current_ID += 1
         
         if frame in dict:
-            det = [frame, id, rest[0], rest[1], rest[2], rest[3], bb_nr_in_frame]
+            det = [frame, id, rest[0], rest[1], rest[2], rest[3]]
             dict[frame] = dict[frame] + [det]
         else:
             bb_nr_in_frame = 0
-            det = [frame, id, rest[0], rest[1], rest[2], rest[3], bb_nr_in_frame]
+            det = [frame, id, rest[0], rest[1], rest[2], rest[3]]
             dict[frame] = [det]
-        
-        bb_nr_in_frame += 1
 
     result = computeOverlapMaximization(dict, current_ID, nr_frames)
 
@@ -113,10 +110,10 @@ if __name__ == '__main__':
 
 
     # TO BE COMPLETED
-    output_file = 'task21_output'
+    output_file = 'task21_output.txt'
     with open(output_file, 'w') as f:
         for detection in result:
-            f.write(detection + "\n")
+            f.write(f"{detection}\n")
 
     f.close()
 
