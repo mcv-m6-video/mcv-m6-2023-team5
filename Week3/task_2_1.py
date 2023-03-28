@@ -1,3 +1,4 @@
+import cv2
 from sort import iou_batch, convert_bbox_to_z, convert_x_to_bbox
 import os
 import numpy as np
@@ -79,7 +80,10 @@ def computeOverlapMaximization(dict, current_id, nr_frames, threshold = 0.8):
     return result
 
 if __name__ == '__main__':
-    colours = np.random.rand(32, 3) #used only for display
+    display = True
+    # colours = np.random.rand(32, 3) #used only for display
+    colours = np.random.randint(0, 256, size=(32, 3))
+    
 
     input_file = "det_detr.txt"
     seq_dets = np.loadtxt(input_file, delimiter=',') # array with every line in the file
@@ -110,9 +114,7 @@ if __name__ == '__main__':
     results = computeOverlapMaximization(dict, current_ID, nr_frames)
 
     #print(result[0])
-
-
-    # TO BE COMPLETED
+    """
     output_file = 'iou_based_tracking.txt'
     # Open file
     f = open(output_file, "w")
@@ -134,12 +136,47 @@ if __name__ == '__main__':
             line = "\n" + imageId + "," + objId + ",{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},-1,-1,-1".format(x, y, w, h, conf)
 
         f.write(line)
-        
+
     # Close txt
     f.close()
+    """
 
+    if(display):
+        
+        # Set device    
+        device = "cuda"
+        # Path
+        videoPath = "../AICity_data/train/S03/c010/vdo.avi"
 
+        # Load video
+        cap = cv2.VideoCapture(videoPath)
 
+        # current frame number
+        current_frame = 0
 
+        while True:
+             # Read frame
+            ret, frame = cap.read()
+            
+            # Check if frame was successfully read
+            if not ret:
+                break
 
+            for detection in results:
+                if detection[0] == current_frame:
+                    # draw the boxes on screen
+                    
+                    id = detection[1]
+                    positions = detection[2:6]# [x1, y1, x2, y2]
+                    color = np.uint8(colours[id%32, :])
+                    c = tuple(map(int, color))
 
+                    cv2.rectangle(frame, (int(positions[0]), int(positions[1])), (int(positions[2]), int(positions[3])), color=c, thickness=2)
+                    cv2.putText(frame, str(id), (int(positions[0]), int(positions[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color=c, thickness=2)
+
+            cv2.imshow('Frame', frame)
+            
+            current_frame += 1
+            # Press Q on keyboard to exit
+            if cv2.waitKey(25) & 0xFF == ord('q'):
+                break
