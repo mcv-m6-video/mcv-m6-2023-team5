@@ -39,45 +39,40 @@ def bb_intersection_over_union(boxA, boxB):
 	return iou
 
 
-def computeOverlapMaximization(dict, current_id, nr_frames, threshold = 0.4):
+def computeOverlapMaximization(dict, current_id, nr_frames, threshold = 0.8):
+
+    result = []
+    [result.append(x) for x in dict[0]] # attach the first frames
+
     # check last 5 previous frames for a bounding box (in case of occlusions)
     BACK_IN_TIME_FRAMES = 5
     
     # start from second frame, as the first one has the IDs
     for current_frame in range(1, nr_frames+1):
         for current_frame_detection in dict[current_frame]: # take all bboxes from current frame
-            IoUValue = -np.inf
+            IoUValue = float('-inf')
             assignedID = -1
 
             previous_frames = [*range(max(current_frame - BACK_IN_TIME_FRAMES, 0), current_frame)]
     
             previous_detections = [det for key in previous_frames for det in dict.get(key)]
             
-            if(current_frame == 7):
-                print(f'Previouse det for {current_frame}: {previous_detections}')
-                # print(f'current frame detections: {current_frame_detection}')
-
             for previous_detection in previous_detections:
-                
                 IoU = computeIoU(current_frame_detection, previous_detection)
-                if(IoU >= threshold and IoU > IoUValue):
+                
+                if(IoU >= threshold and IoU > IoUValue): # get the maximum IoU above the threshold
                     IoUValue = IoU
                     assignedID = previous_detection[1]
-
-            if(assignedID == -1): # didn't find anything that has an IoU big enought
+                    
+            if assignedID != -1:
+                current_frame_detection[1] = assignedID
+            elif assignedID == -1: # didn't find anything that has an IoU big enought
                 current_frame_detection[1] = current_id # new detection
                 current_id += 1
             
-            
-            """
-            for previous_frame in previous_frames:
-                # compare the bbox from current_frame with the ones in the past
-                
-                for past_detections in dict[previous_frame]: # get bboxes from a previous frame
-                    pass
-            """
+            result.append(current_frame_detection)
 
-    return dict
+    return result
 
 if __name__ == '__main__':
     colours = np.random.rand(32, 3) #used only for display
@@ -86,7 +81,7 @@ if __name__ == '__main__':
     seq_dets = np.loadtxt(input_file, delimiter=',') # array with every line in the file
 
     current_ID = 0
-    # create dictionary to store the detections from each frame (faster than list)
+    # create dictionary to store the detections from each frame (faster than list) in paris <FRAME_NR, DETECTIONS_ARRAY>
     dict = {}
     nr_frames = 0
     bb_nr_in_frame = 0
@@ -112,8 +107,21 @@ if __name__ == '__main__':
         
         bb_nr_in_frame += 1
 
-    computeOverlapMaximization(dict, current_ID, nr_frames)
+    result = computeOverlapMaximization(dict, current_ID, nr_frames)
 
-    # print(dict[1])
+    print(result[0])
+
+
+    # TO BE COMPLETED
+    output_file = 'task21_output'
+    with open(output_file, 'w') as f:
+        for detection in result:
+            f.write(detection + "\n")
+
+    f.close()
+
+
+
+
 
 
