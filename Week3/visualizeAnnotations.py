@@ -65,15 +65,15 @@ while True:
     imageId = str(int(cap.get(cv2.CAP_PROP_POS_FRAMES)))
     print(imageId)
     
-    # if int(imageId) < 11:
-    #     continue
+    if int(imageId) < 11 + 1:
+        continue
     
     # Plot
-    if int_id % 100 == 0:
+    if int_id % 30 == 0:
         # Find id with filename (this should not be necessary if the order is correct)
         for imgKey in coco.imgs.keys():
             img = coco.imgs[imgKey]
-            if img["file_name"].split("_")[1] == str(int(imageId)):
+            if img["file_name"].split("_")[1] == str(int(imageId) - 11):
                 imgId = img['id']
                 break
         annotsId = coco.getAnnIds(imgId)

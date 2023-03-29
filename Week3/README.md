@@ -6,7 +6,7 @@ During the third week of the project, two main tasks were tackled: object detect
 
 * **Task 1.1**: Off-the-shelf:
 	* ``inferenceModels.py`` : This script can be used to create and evaluate the predictions of Faster RCNN, YoloV8, and DETR pretrained models on video frames. The model name can be defined in the script. The script provides mAP, mIoU, mean inference time (s/frame), and stores a GIF with the prediction bounding boxes.
-* **Task 1.2**: Annotations: Roboflow was used (more information in the report slides). Results in different format are in the folder ``annotations_s05_c10/``
+* **Task 1.2**: Annotations: Roboflow was used (more information in the report slides). Results in different format are in the folder ``annotations_s05_c10/``. To visualize the results ``visualizeAnnotations.py`` script was used.
 * **Task 1.3**: Fine-tune the DETR model to our data:
 	* ``trainDetr.py`` : This script can be used to fine-tune the DETR model using weights from the COCO dataset. In this script, the dataset folder (in COCO 2017 format) can be defined. This script uses the official training script, so it is important to clone the repository before executing it:
 ``git clone https://github.com/facebookresearch/detr.git``
