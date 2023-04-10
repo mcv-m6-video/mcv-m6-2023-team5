@@ -7,6 +7,7 @@ import torch
 import torch.nn.functional as F
 import flow_vis
 import imageio
+from PIL import Image
 
 def computeOpticalFlows(videoPath, outputFolder, visualize = False):
     """
@@ -97,6 +98,26 @@ def computeOpticalFlows(videoPath, outputFolder, visualize = False):
         np.save(outputFolder + imageId + ".npy", flow)
         
     if visualize:
+        for i, ofPlot in enumerate(ofPlots):
+            ofPlot = Image.fromarray(ofPlot)
+            orPlot = Image.fromarray(orPlots[i])
+            if i == 0:
+                ofPlots[i] = ofPlot.quantize(colors=254, method=Image.Quantize.MAXCOVERAGE)
+                orPlots[i] = orPlot.quantize(colors=254, method=Image.Quantize.MAXCOVERAGE)
+            else:
+                ofPlots[i] = ofPlot.quantize(colors=254, palette=ofPlots[0], method=Image.Quantize.MAXCOVERAGE)
+                ofPlots[i] = ofPlots[i].convert('RGB')
+                ofPlots[i] = np.array(ofPlots[i])
+                
+                orPlots[i] = orPlot.quantize(colors=254, palette=orPlots[0], method=Image.Quantize.MAXCOVERAGE)
+                orPlots[i] = orPlots[i].convert('RGB')
+                orPlots[i] = np.array(orPlots[i])
+        ofPlots[0] = ofPlots[0].convert('RGB')      
+        ofPlots[0] = np.array(ofPlots[0])
+        
+        orPlots[0] = orPlots[0].convert('RGB')      
+        orPlots[0] = np.array(orPlots[0])
+
         imageio.mimsave('../predictedOpticalFlow.gif', ofPlots, fps=5)
         imageio.mimsave('../orig.gif', orPlots, fps=5)
 

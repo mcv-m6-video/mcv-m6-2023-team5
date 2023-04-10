@@ -357,7 +357,7 @@ def trackWithOpticalFlow(results, current_id, nr_frames, opticalFlowModel, video
 if __name__ == "__main__":
     
     objDets = "../det_detr_c011.txt"#"../det_detr.txt"
-    videoPath = "../../AICity_data/train/S03/c010/vdo.avi"
+    videoPath = "../seqs/train/S03/c011/vdo.avi"#"../../AICity_data/train/S03/c010/vdo.avi"
     results = trackObjects(objDets, videoPath)
     
     
