@@ -258,8 +258,11 @@ def trackWithOpticalFlow(results, current_id, nr_frames, opticalFlowModel, video
     fixed_inference_size = [544, 960]
     # Pass first frame
     _, previousFrame = video.read()
-    # Get first frames tracks
-    result = [x for x in results[1]] # attach the first frames
+    if 1 in results.keys():
+        # Get first frames tracks
+        result = [x for x in results[1]] # attach the first frames
+    else:
+        result = []
     
     # start from second frame, as the first one has the IDs assigned
     for current_frame in range(2, nr_frames+1):
@@ -269,9 +272,13 @@ def trackWithOpticalFlow(results, current_id, nr_frames, opticalFlowModel, video
         # Get next frame
         _, currentFrame = video.read()
         
-        # Predict optical flow
-        flow = opticalFlowModel.inference(previousFrame, currentFrame, grayscale = False, 
-                                  fixed_inference_size= fixed_inference_size)
+        if len(tracks) > 0:
+        
+            # Predict optical flow
+            flow = opticalFlowModel.inference(previousFrame, currentFrame, grayscale = False, 
+                                      fixed_inference_size= fixed_inference_size)
+        else:
+            flow = np.array([])
         
         previousFrame = currentFrame
         
@@ -279,7 +286,8 @@ def trackWithOpticalFlow(results, current_id, nr_frames, opticalFlowModel, video
         detectionsFlow(tracks, flow, flow.shape, "median")
         
         # Do not repeat current detection assigments
-        alreadyAssig = [False]*len(results[current_frame])
+        if current_frame in results.keys():
+            alreadyAssig = [False]*len(results[current_frame])
         for i, track in enumerate(tracks): # take all tracks from previous
             # Init assignment
             minDis = np.float32("inf")
@@ -287,15 +295,16 @@ def trackWithOpticalFlow(results, current_id, nr_frames, opticalFlowModel, video
             det_index = -1
             
             # Get current detection
-            for index, current_detection in enumerate(results[current_frame]):
-                
-                if not alreadyAssig[index]:
-                    dis = computeDis(track.pred_new_center, current_detection)
+            if current_frame in results.keys():
+                for index, current_detection in enumerate(results[current_frame]):
                     
-                    if dis < np.float32("inf") - 1 and dis < minDis:
-                        det = current_detection
-                        det_index = index
-                        minDis = dis
+                    if not alreadyAssig[index]:
+                        dis = computeDis(track.pred_new_center, current_detection)
+                        
+                        if dis < np.float32("inf") - 1 and dis < minDis:
+                            det = current_detection
+                            det_index = index
+                            minDis = dis
             
             # Assigned to a detection
             if not(det is None):
@@ -310,25 +319,29 @@ def trackWithOpticalFlow(results, current_id, nr_frames, opticalFlowModel, video
                     continue
                 det = [current_frame, track.id, track.bbox[0], track.bbox[1], 
                                 track.bbox[2], track.bbox[3], track.conf]
-                results[current_frame].append(det)
+                if current_frame in results.keys():
+                    results[current_frame].append(det)
+                else:
+                    results[current_frame] = [det]
                 alreadyAssig.append(True)
             result.append(det)
         
-        # New objects found for tracking
-        for i, assigned in enumerate(alreadyAssig):
-            
-            if not assigned:
-                # Create new track
-                newTrackBBox = results[current_frame][i][2:7]
-                newTrack = Track([(newTrackBBox[0]+newTrackBBox[2])/2, 
-                                  (newTrackBBox[1]+newTrackBBox[3])/2], 
-                                 current_id, newTrackBBox[:4], newTrackBBox[4])
-                tracks.append(newTrack)
-                det = results[current_frame][i]
-                det[1] = current_id
-                current_id += 1
-            
-                result.append(det)
+        if current_frame in results.keys():
+            # New objects found for tracking
+            for i, assigned in enumerate(alreadyAssig):
+                
+                if not assigned:
+                    # Create new track
+                    newTrackBBox = results[current_frame][i][2:7]
+                    newTrack = Track([(newTrackBBox[0]+newTrackBBox[2])/2, 
+                                      (newTrackBBox[1]+newTrackBBox[3])/2], 
+                                     current_id, newTrackBBox[:4], newTrackBBox[4])
+                    tracks.append(newTrack)
+                    det = results[current_frame][i]
+                    det[1] = current_id
+                    current_id += 1
+                
+                    result.append(det)
         
         # Remove tracks without patience
         ind = 0
@@ -343,7 +356,7 @@ def trackWithOpticalFlow(results, current_id, nr_frames, opticalFlowModel, video
 
 if __name__ == "__main__":
     
-    objDets = "../det_detr.txt"
+    objDets = "../det_detr_c011.txt"#"../det_detr.txt"
     videoPath = "../../AICity_data/train/S03/c010/vdo.avi"
     results = trackObjects(objDets, videoPath)
     
