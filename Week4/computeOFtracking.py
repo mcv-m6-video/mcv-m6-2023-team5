@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import imageio
 from resultsUniMatch import UniMatchOptFlow
+import os
 
 class Track:
     def __init__(self, center, idVal, bbox, conf):
@@ -320,10 +321,8 @@ def trackWithOpticalFlow(results, current_id, nr_frames, opticalFlowModel, video
                 det = [current_frame, track.id, track.bbox[0], track.bbox[1], 
                                 track.bbox[2], track.bbox[3], track.conf]
                 if current_frame in results.keys():
-                    results[current_frame].append(det)
-                else:
-                    results[current_frame] = [det]
-                alreadyAssig.append(True)
+                    alreadyAssig.append(True)
+                
             result.append(det)
         
         if current_frame in results.keys():
@@ -356,32 +355,37 @@ def trackWithOpticalFlow(results, current_id, nr_frames, opticalFlowModel, video
 
 if __name__ == "__main__":
     
-    objDets = "../det_detr_c011.txt"#"../det_detr.txt"
-    videoPath = "../seqs/train/S03/c011/vdo.avi"#"../../AICity_data/train/S03/c010/vdo.avi"
-    results = trackObjects(objDets, videoPath)
+    seq = "../seqs/train/S03/"
+    resFolder = "../challengeData1_res/"
     
-    
-    output_file = '../optical_based_tracking_pretrained_online.txt'
-    # Open file
-    f = open(output_file, "w")
-    
-    initial = True
-    
-    for result in results:
-        imageId = str(result[0])
-        objId = str(result[1])
-        x = result[2]
-        y = result[3]
-        w = result[4] - result[2]
-        h = result[5] - result[3]
-        conf = result[6]
-        if initial:
-            line = imageId + "," + objId + ",{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},-1,-1,-1".format(x, y, w, h, conf)
-            initial = False
-        else:
-            line = "\n" + imageId + "," + objId + ",{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},-1,-1,-1".format(x, y, w, h, conf)
-
-        f.write(line)
+    for seqSub in os.listdir(seq):
         
-    # Close txt
-    f.close()
+        objDets = resFolder + "det_detr_" + seqSub + ".txt"
+        videoPath = seq + seqSub + "/vdo.avi"#"../../AICity_data/train/S03/c010/vdo.avi"
+        results = trackObjects(objDets, videoPath)
+        
+        
+        output_file = resFolder + 'OFtracking_' + seqSub + '.txt'
+        # Open file
+        f = open(output_file, "w")
+        
+        initial = True
+        
+        for result in results:
+            imageId = str(result[0])
+            objId = str(result[1])
+            x = result[2]
+            y = result[3]
+            w = result[4] - result[2]
+            h = result[5] - result[3]
+            conf = result[6]
+            if initial:
+                line = imageId + "," + objId + ",{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},-1,-1,-1".format(x, y, w, h, conf)
+                initial = False
+            else:
+                line = "\n" + imageId + "," + objId + ",{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},-1,-1,-1".format(x, y, w, h, conf)
+    
+            f.write(line)
+            
+        # Close txt
+        f.close()
