@@ -73,8 +73,8 @@ def removeStaticTracks(trackFile, outputFile):
 if __name__ == "__main__":
     
     # Folder with all tracks
-    folderTracks = "./challengeData1_res_no/"
-    folderOutput = "./challengeData1_res_no/"
+    folderTracks = "./challengeData3_res_no/"
+    folderOutput = "./challengeData3_res_no/"
     
     for trackingFile in os.listdir(folderTracks):
         # Set output

@@ -355,8 +355,8 @@ def trackWithOpticalFlow(results, current_id, nr_frames, opticalFlowModel, video
 
 if __name__ == "__main__":
     
-    seq = "../seqs/train/S03/"
-    resFolder = "../challengeData1_res/"
+    seq = "../seqs/train/S04/"
+    resFolder = "../challengeData3_res/"
     
     for seqSub in os.listdir(seq):
         
