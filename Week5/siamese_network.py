@@ -71,7 +71,7 @@ class SiameseNetwork(nn.Module):
         self.dropout = nn.Dropout(p=0.3)
 
         # Linear Layer
-        self.fc1 = nn.Linear(4 * 4 * 128, 1024)
+        self.fc1 = nn.Linear(6 * 6 * 128, 1024)
         self.fc2 = nn.Linear(1024, 512)
 
     def forward_once(self, x):
@@ -79,14 +79,7 @@ class SiameseNetwork(nn.Module):
         x = self.pool(F.relu(self.conv2(x)))
         x = self.pool(F.relu(self.conv3(x)))
         x = self.pool(F.relu(self.conv4(x)))
-        print(x.shape)
-        if(x.shape[0] == 64):
-            x = x.view(-1, 4 * 4 * 128)
-        else:
-            padder = torch.zeros(64 - 58,128,6,6)
-            x = torch.cat([x,padder], dim = 0)
-            x = x.view(-1, 4 * 4 * 128)
-            #print(padded_a.shape)
+        x = x.view(-1, 6 * 6 * 128)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
 
