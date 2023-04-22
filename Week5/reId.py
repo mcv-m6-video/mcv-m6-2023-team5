@@ -3,6 +3,10 @@ import cv2
 import torch
 import copy
 from sklearn.neighbors import KNeighborsClassifier
+from siamese_network import SiameseNetwork
+import torchvision.transforms as transforms
+from PIL import Image
+import os
 
 def obtainDetEmbeddings(model, transforms, trackPath, videoPath, embeddingSize, device = "cuda"):
     """
@@ -55,24 +59,25 @@ def obtainDetEmbeddings(model, transforms, trackPath, videoPath, embeddingSize, 
         h = int(float(videoTracks[indexTrackLines][5]))
         
         # Find frame
-        frameIndex = video.get(cv2.CV_CAP_PROP_POS_FRAMES)
+        frameIndex = int(video.get(1))#cv2.CV_CAP_PROP_POS_FRAMES)
         
         while  frameIndex != detIndex:
             
             # Get next frame
             _, currentFrame = video.read()
         
-            frameIndex = video.get(cv2.CV_CAP_PROP_POS_FRAMES)
+            frameIndex = int(video.get(1))#cv2.CV_CAP_PROP_POS_FRAMES)
         
         # Get crop
         imageCrop = currentFrame[y:y+h, x:x+w]
         imageCrop = cv2.cvtColor(imageCrop, cv2.COLOR_BGR2RGB)
+        imageCrop = Image.fromarray(imageCrop)
         transformedImageCrop = transforms(imageCrop)
-        transformedImageCrop = transformedImageCrop.to(device)
+        transformedImageCrop = transformedImageCrop.to(device).unsqueeze(0)
         
         with torch.no_grad():
             # Get embedding
-            embedding = model(transformedImageCrop)
+            embedding = model.forward_once(transformedImageCrop)
         embedding = embedding.cpu().numpy()
         
         # Store
@@ -134,13 +139,26 @@ def ReIdByCentroids(tracksEmbeddings1, tracksEmbeddings2, disThreshold):
     (dis, neighbors) = knn.kneighbors(queryCentroids, return_distance=True)
     
     # Get matches
+    availableUniques = [True]*len(refUniqueLabels)
     matches = {}
     for i, queryLabel in enumerate(queryUniqueLabels):
-        if dis[i, 0] < disThreshold:
-            matches[queryLabel] = queryUniqueLabels[neighbors[i,0]]
-        else:
+        j = 0
+        while not availableUniques[neighbors[i,j]]:
+            j += 1
+            
+            if j == dis.shape[1]:
+                break
+        
+        if j >= dis.shape[1]:
             matches[queryLabel] = currentId
             currentId += 1
+        else:
+            if dis[i, j] < disThreshold:
+                matches[queryLabel] = refUniqueLabels[neighbors[i,j]]
+                availableUniques[neighbors[i,j]] = False
+            else:
+                matches[queryLabel] = currentId
+                currentId += 1
     
     # Create net tracksEmbeddings
     resultTracksEmbeddings = copy.deepcopy(tracksEmbeddings1)
@@ -149,7 +167,7 @@ def ReIdByCentroids(tracksEmbeddings1, tracksEmbeddings2, disThreshold):
         queryNewId = matches[queryRealId]
         
         queryNewLabels = [queryNewId]*np.sum(queryLabels == queryRealId)
-        resultTracksEmbeddings["ids"] = resultTracksEmbeddings["ids"] + queryNewLabels
+        resultTracksEmbeddings["ids"] = np.array(list(resultTracksEmbeddings["ids"]) + queryNewLabels)
         resultTracksEmbeddings["embeddings"] = np.vstack((resultTracksEmbeddings["embeddings"], queryEmbeddings[queryLabels == queryRealId, :]))
     
     return matches, resultTracksEmbeddings
@@ -195,27 +213,35 @@ def ReIdByVoting(tracksEmbeddings1, tracksEmbeddings2, disThreshold):
     
     # Voting
     votes = np.zeros((len(queryUniqueLabels), len(refUniqueLabels)))
-    for i, queryLabel in queryLabels:
+    for i, queryLabel in enumerate(queryLabels):
         predDis = dis[i, 0]
         
         if predDis > disThreshold:
             continue
         
-        queryIndex = np.where(queryUniqueLabels == queryLabel)[0]
-        refIndex = np.where(refUniqueLabels == refLabels[neighbors[i,0]])[0]
+        queryIndex = np.where(queryUniqueLabels == queryLabel)[0][0]
+        refIndex = np.where(refUniqueLabels == refLabels[neighbors[i,0]])[0][0]
         votes[queryIndex, refIndex] += 1
     
     # Get matches
+    availableUniques = [True]*len(refUniqueLabels)
     matches = {}
     for i, queryLabel in enumerate(queryUniqueLabels):
-        maxVotes = np.max(votes[i,:])
-        maxVotesIndex = np.argmax(votes[i,:])
-        
-        if maxVotes > 0:
-            matches[queryLabel] = queryUniqueLabels[maxVotesIndex]
-        else:
+        vot = votes[i,:][np.array(availableUniques) == True]
+        if len(vot) == 0:
             matches[queryLabel] = currentId
             currentId += 1
+        else:
+            
+            maxVotes = np.max(vot)
+            maxVotesIndex = np.argmax(votes[i,:] * np.array(availableUniques).astype(np.int32))
+        
+            if maxVotes > 0:
+                matches[queryLabel] = refUniqueLabels[maxVotesIndex]
+                availableUniques[maxVotesIndex] = False
+            else:
+                matches[queryLabel] = currentId
+                currentId += 1
     
     # Create net tracksEmbeddings
     resultTracksEmbeddings = copy.deepcopy(tracksEmbeddings1)
@@ -224,7 +250,13 @@ def ReIdByVoting(tracksEmbeddings1, tracksEmbeddings2, disThreshold):
         queryNewId = matches[queryRealId]
         
         queryNewLabels = [queryNewId]*np.sum(queryLabels == queryRealId)
-        resultTracksEmbeddings["ids"] = resultTracksEmbeddings["ids"] + queryNewLabels
+        resultTracksEmbeddings["ids"] = np.array(list(resultTracksEmbeddings["ids"]) + queryNewLabels)
         resultTracksEmbeddings["embeddings"] = np.vstack((resultTracksEmbeddings["embeddings"], queryEmbeddings[queryLabels == queryRealId, :]))
     
     return matches, resultTracksEmbeddings
+
+
+def saveAllEmbeddingsAndIds(tracksEmbeddings, output):
+    
+    np.save(output + "_embeddings.npy", tracksEmbeddings["embeddings"])
+    np.save(output + "_ids.npy", tracksEmbeddings["ids"])

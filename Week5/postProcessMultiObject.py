@@ -46,10 +46,11 @@ def postProcessTracks(roiImagePath, trackFile, outputFile):
         line_split = line.split(",")
         l_id = int(line_split[1])
         
+        area = float(line_split[4])*float(line_split[5])
         if allowedDet(roiImage, int(float(line_split[2])), 
                       int(float(line_split[3])), 
                       int(float(line_split[4])), 
-                      int(float(line_split[5]))):
+                      int(float(line_split[5]))) and area > 100:
             
             centerX = float(line_split[2]) + float(line_split[4])/2
             centerY = float(line_split[3]) + float(line_split[5])/2
@@ -100,13 +101,15 @@ def postProcessTracks(roiImagePath, trackFile, outputFile):
 if __name__ == "__main__":
     
     # Folder with all tracks
-    folderTracks = "../WEEK4/challengeData3_res_no/"
-    folderOutput = "../WEEK4/challengeData3_res_no/"
-    seqFolder = "../WEEK4/seqs/train/S04/"
+    folderTracks = "./SEQ3_tracks/"
+    folderOutput = "./SEQ3_tracks_pp/"
+    if not os.path.exists(folderOutput):
+       os.makedirs(folderOutput)
+    seqFolder = "../seqs/train/S03/"
     
     for trackingFile in os.listdir(folderTracks):
         # Get roi path
         roiPath = seqFolder + trackingFile[:-4].split("_")[-1] + "/roi.jpg"
         # Set output
-        outputFile = folderOutput + trackingFile[:-4] + "_remStatic.txt"
+        outputFile = folderOutput + "pp_"+ trackingFile[:-4] + ".txt"
         postProcessTracks(roiPath, folderTracks + trackingFile, outputFile)
