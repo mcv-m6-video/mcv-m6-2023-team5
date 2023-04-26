@@ -29,10 +29,15 @@ To run our scripts, usually you only need to replace paths with respect to your 
 MIT License
 
 Copyright (c) [2023] [Iñigo Auzmendi]
+
 Copyright (c) [2023] [Kyryl Dubovetskyi]
+
 Copyright (c) [2023] [Michell Vargas Signoret]
+
 Copyright (c) [2023] [Razvan Apatean]
+
 Copyright (c) [2023] [Ayan Banerjee]
+
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
