@@ -9,7 +9,7 @@ if __name__ == "__main__":
     # Path
     seq = "../seqs/train/S03/"
     cameras = os.listdir(seq)
-    trackFile = "./SO3mtmc/gtvotes0.6.txt"
+    trackFile = "./SO3mtmc_resTrip1all/mtmccentroids17.txt"
     #trackFile = "./data/gt/mot_challenge/MOT15-all/OFtracking_c022_remStatic/gt/gt.txt"
     f = open(trackFile, "r")
     lines = f.readlines()
@@ -20,54 +20,48 @@ if __name__ == "__main__":
     
     # colours = np.random.rand(32, 3) #used only for display
     colours = np.random.randint(0, 256, size=(32, 3))
-    currentCamera = -1
     
-    plotedDetections = [False]*len(results)
-    for index, result in enumerate(results):
-        if currentCamera != int(result[0])//10000:
-            currentCamera = int(result[0])//10000
-            videoPath = seq + cameras[currentCamera] + "/vdo.avi"
-            # Load video
-            cap = cv2.VideoCapture(videoPath)
-            current_frame = 1
+    frameWidth = 300
+    frameHeight = 200
+    
+    for indexCam, camera in enumerate(cameras):
+        videoPath = seq + cameras[indexCam] + "/vdo.avi"
+        # Load video
+        cap = cv2.VideoCapture(videoPath)
+        current_frame = 1
         
+        while True:
             # Read frame
             ret, frame = cap.read()
-        if plotedDetections[index]:
-            continue
-        while int(result[0]) - currentCamera * 10000 > current_frame:
-            # Read frame
-            ret, frame = cap.read()
+            
+            print(current_frame)
+            # if current_frame == 50:
+            #     break
+            if current_frame % 2 == 0:
+                if current_frame > 300: 
+                    break
+                if current_frame > 150:
+                    for res_i, detection in enumerate(results):
+                        detection = [float(e) for e in detection]
+                        detection[4] += detection[2]
+                        detection[5] += detection[3]
+                        if detection[0] - indexCam * 10000 == current_frame:
+                            # draw the boxes on screen
+                            id = int(detection[1])
+                            positions = detection[2:6]# [x1, y1, x2, y2]
+                            color = np.uint8(colours[id%32, :])
+                            c = tuple(map(int, color))
+                            #print(id, c)
+            
+                            cv2.rectangle(frame, (int(positions[0]), int(positions[1])), (int(positions[2]), int(positions[3])), color=c, thickness=10)
+                            cv2.putText(frame, str(id), (int(positions[0]), int(positions[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 4, color=c, thickness=10)
+                            
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    frame = cv2.resize(frame,(frameWidth, frameHeight))
+                    # Select specific part
+                    #frame = frame[10:200, 500:1060]
+                    cameraFrames[indexCam].append(frame)
             current_frame += 1
-        
-        print(current_frame)
-        # if current_frame == 50:
-        #     break
-        if current_frame % 2 == 0:
-            if current_frame > 500: 
-                continue
-            if current_frame > 100:
-                for res_i, detection in enumerate(results):
-                    detection = [float(e) for e in detection]
-                    detection[4] += detection[2]
-                    detection[5] += detection[3]
-                    if detection[0] - currentCamera * 10000 == current_frame:
-                        # draw the boxes on screen
-                        plotedDetections[res_i] = True
-                        id = int(detection[1])
-                        positions = detection[2:6]# [x1, y1, x2, y2]
-                        color = np.uint8(colours[id%32, :])
-                        c = tuple(map(int, color))
-                        #print(id, c)
-        
-                        cv2.rectangle(frame, (int(positions[0]), int(positions[1])), (int(positions[2]), int(positions[3])), color=c, thickness=10)
-                        cv2.putText(frame, str(id), (int(positions[0]), int(positions[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 4, color=c, thickness=10)
-                        
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                frame = cv2.resize(frame,(500, 300))
-                # Select specific part
-                #frame = frame[10:200, 500:1060]
-                cameraFrames[currentCamera].append(frame)
     
     # Same color palette every frame:
     for j, oneCamFrames in enumerate(cameraFrames):
@@ -82,7 +76,25 @@ if __name__ == "__main__":
     cameraFrames[0][0] = cameraFrames[0][0].convert('RGB')      
     cameraFrames[0][0] = np.array(cameraFrames[0][0])
     
-    for i, oneCamFrames in enumerate(cameraFrames):
-        path = "results_" + cameras[i] + trackFile[:-4] + ".gif"
-        imageio.mimsave(path, oneCamFrames, format  = 'GIF', fps=10)
+    # for i, oneCamFrames in enumerate(cameraFrames):
+    #     path = "results_s03_" + cameras[i] + trackFile[:-4].split("/")[-1] + ".gif"
+    #     imageio.mimsave(path, oneCamFrames, format  = 'GIF', fps=10)
+        
+    # Create big gif
+    rows = int(np.floor(np.sqrt(len(cameraFrames))))
+    columns = int(np.ceil(len(cameraFrames) / rows))
+    row = 0
+    column = 0
+    concatFrames = [np.zeros((rows*frameHeight, columns* frameWidth, 3), dtype = np.uint8) for i in range(len(cameraFrames[0]))]
+    for oneCamFrames in cameraFrames:
+        if column >= columns:
+            row += 1
+            column = 0
+        
+        for i, frame in enumerate(oneCamFrames):
+            concatFrames[i][row*frameHeight: (row + 1)*frameHeight, column*frameWidth: (column + 1)*frameWidth] = frame
+        column += 1
+    path = "results_all_s03_corr2" + trackFile[:-4].split("/")[-1] + ".gif"
+    imageio.mimsave(path, concatFrames, format  = 'GIF', fps=12)
+    
     print("DONE!")
