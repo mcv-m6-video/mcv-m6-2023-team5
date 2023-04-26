@@ -9,7 +9,7 @@ if __name__ == "__main__":
     # Path
     seq = "../seqs/train/S03/"
     cameras = os.listdir(seq)
-    trackFile = "./SO3mtmc/mtmcvotes0.6.txt"
+    trackFile = "./SO3mtmc_resTrip1all/mtmccentroids17.txt"
     #trackFile = "./data/gt/mot_challenge/MOT15-all/OFtracking_c022_remStatic/gt/gt.txt"
     f = open(trackFile, "r")
     lines = f.readlines()
@@ -38,9 +38,9 @@ if __name__ == "__main__":
             # if current_frame == 50:
             #     break
             if current_frame % 2 == 0:
-                if current_frame > 800: 
+                if current_frame > 300: 
                     break
-                if current_frame > 100:
+                if current_frame > 150:
                     for res_i, detection in enumerate(results):
                         detection = [float(e) for e in detection]
                         detection[4] += detection[2]
@@ -76,9 +76,9 @@ if __name__ == "__main__":
     cameraFrames[0][0] = cameraFrames[0][0].convert('RGB')      
     cameraFrames[0][0] = np.array(cameraFrames[0][0])
     
-    for i, oneCamFrames in enumerate(cameraFrames):
-        path = "results_s03_" + cameras[i] + trackFile[:-4].split("/")[-1] + ".gif"
-        imageio.mimsave(path, oneCamFrames, format  = 'GIF', fps=10)
+    # for i, oneCamFrames in enumerate(cameraFrames):
+    #     path = "results_s03_" + cameras[i] + trackFile[:-4].split("/")[-1] + ".gif"
+    #     imageio.mimsave(path, oneCamFrames, format  = 'GIF', fps=10)
         
     # Create big gif
     rows = int(np.floor(np.sqrt(len(cameraFrames))))
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         for i, frame in enumerate(oneCamFrames):
             concatFrames[i][row*frameHeight: (row + 1)*frameHeight, column*frameWidth: (column + 1)*frameWidth] = frame
         column += 1
-    path = "results_all_s03_" + trackFile[:-4].split("/")[-1] + ".gif"
-    imageio.mimsave(path, concatFrames, format  = 'GIF', fps=10)
+    path = "results_all_s03_corr2" + trackFile[:-4].split("/")[-1] + ".gif"
+    imageio.mimsave(path, concatFrames, format  = 'GIF', fps=12)
     
     print("DONE!")

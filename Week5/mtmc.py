@@ -4,15 +4,17 @@ import os
 
 if __name__ == "__main__":
         
-    distances = [-1, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 4000]
+    distances = [17]#[-1, 0.2, 0.4, 0.6, 0.8, 11, 13, 15, 17, 19, 4000]
     types = ["centroids", "votes"]
     for typeMatch in types:
+        print(typeMatch)
         for distance in distances:
-            folderEmbeddings = "./S03embeddings/"  
-            folderTracks = "./SEQ3_tracks_pp/"
-            folderSeqs = "../seqs/train/S03/"
+            print(distance)
+            folderEmbeddings = "./S04embeddings_resTrip1all/"  
+            folderTracks = "./S04_deepsortTracking_pp/"
+            folderSeqs = "../seqs/train/S04/"
             
-            outputMultiCameraTrack = "./SO3mtmc/"
+            outputMultiCameraTrack = "./SO4mtmc_resTrip1all/"
             if not os.path.exists(outputMultiCameraTrack):
                os.makedirs(outputMultiCameraTrack)
     

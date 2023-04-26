@@ -37,10 +37,10 @@ def show_plot(iteration,loss):
 
 # Configuration Class
 class Config():
-    training_dir = "/Users/ayanbanerjee/Downloads/car_patch_dataset/"
-    testing_dir = "/Users/ayanbanerjee/Documents/m6/video_frames_extractor/"
-    train_batch_size = 64
-    train_number_epochs = 10
+    training_dir = "./train_dataset/"
+    testing_dir = "./val_dataset"
+    train_batch_size = 256
+    train_number_epochs = 100
 
 # Using Image Folder Dataset
 folder_dataset = dset.ImageFolder(root=Config.training_dir)
@@ -57,7 +57,7 @@ siamese_dataset = SiameseNetworkDataset(imageFolderDataset=folder_dataset,
 # Visualising some of the data
 vis_dataloader = DataLoader(siamese_dataset,
                         shuffle=True,
-                        num_workers=1,
+                        num_workers=0,
                         batch_size=8)
 dataiter = iter(vis_dataloader)
 
@@ -70,12 +70,12 @@ print(example_batch[2].numpy())
 # Training
 train_dataloader = DataLoader(siamese_dataset,
                         shuffle=True,
-                        num_workers=1,
+                        num_workers=0,
                         batch_size=Config.train_batch_size)
 
 # Model
-net = SiameseNetwork() # For cpu
-#net = SiameseNetwork().cuda() # For gpu
+#net = SiameseNetwork() # For cpu
+net = SiameseNetwork().cuda() # For gpu
 criterion = ContrastiveLoss()
 optimizer = optim.Adam(net.parameters(),lr = 0.001)
 
@@ -86,7 +86,7 @@ iteration_number= 0
 for epoch in range(0,Config.train_number_epochs):
     for i, data in enumerate(train_dataloader,0):
         img0, img1 , label = data
-        img0, img1 , label = img0, img1 , label
+        img0, img1 , label = img0.cuda(), img1.cuda() , label.cuda()
         optimizer.zero_grad()
         output1,output2 = net(img0,img1)
         loss_contrastive = criterion(output1,output2,label)

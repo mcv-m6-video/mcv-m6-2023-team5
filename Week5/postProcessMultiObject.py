@@ -49,8 +49,8 @@ def postProcessTracks(roiImagePath, trackFile, outputFile):
         area = float(line_split[4])*float(line_split[5])
         if allowedDet(roiImage, int(float(line_split[2])), 
                       int(float(line_split[3])), 
-                      int(float(line_split[4])), 
-                      int(float(line_split[5]))) and area > 100:
+                      int(float(line_split[4])),
+                      int(float(line_split[5]))) and area > 100 and float(line_split[2]) > 0 and float(line_split[3]) > 0:
             
             centerX = float(line_split[2]) + float(line_split[4])/2
             centerY = float(line_split[3]) + float(line_split[5])/2
@@ -73,12 +73,12 @@ def postProcessTracks(roiImagePath, trackFile, outputFile):
     for trackId in tracks.keys():
         
         centers = np.array(tracks[trackId])
-        # maxX, minX = centers[:,0].max(), centers[:,0].min()
-        # maxY, minY = centers[:,1].max(), centers[:,1].min()
+        #maxX, minX = centers[:,0].max(), centers[:,0].min()
+        #maxY, minY = centers[:,1].max(), centers[:,1].min()
         Xstd = centers[:,0].std()
         Ystd = centers[:,1].std()
-        # if (maxX - minX) < 150 and (maxY - minY) < 150:
-        if (Xstd + Ystd)/2 < 100:
+        #if (maxX - minX) < 150 and (maxY - minY) < 150:
+        if (Xstd + Ystd)/2 < 75:
             staticTracks.append(trackId)
     
     # Save not static tracks
@@ -101,11 +101,11 @@ def postProcessTracks(roiImagePath, trackFile, outputFile):
 if __name__ == "__main__":
     
     # Folder with all tracks
-    folderTracks = "./SEQ3_tracks/"
-    folderOutput = "./SEQ3_tracks_pp/"
+    folderTracks = "./S01_deepsortTracking/"
+    folderOutput = "./S01_deepsortTracking_pp/"
     if not os.path.exists(folderOutput):
        os.makedirs(folderOutput)
-    seqFolder = "../seqs/train/S03/"
+    seqFolder = "../seqs/train/S01/"
     
     for trackingFile in os.listdir(folderTracks):
         # Get roi path

@@ -8,7 +8,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 import os
 
-def obtainDetEmbeddings(model, transforms, trackPath, videoPath, embeddingSize, device = "cuda"):
+def obtainDetEmbeddings(model, transforms, trackPath, videoPath, embeddingSize, resnet, device = "cuda"):
     """
     This function computes the embeddings of each detection in tracks from the video.
 
@@ -67,7 +67,7 @@ def obtainDetEmbeddings(model, transforms, trackPath, videoPath, embeddingSize, 
             _, currentFrame = video.read()
         
             frameIndex = int(video.get(1))#cv2.CV_CAP_PROP_POS_FRAMES)
-        
+        print(frameIndex)
         # Get crop
         imageCrop = currentFrame[y:y+h, x:x+w]
         imageCrop = cv2.cvtColor(imageCrop, cv2.COLOR_BGR2RGB)
@@ -76,8 +76,12 @@ def obtainDetEmbeddings(model, transforms, trackPath, videoPath, embeddingSize, 
         transformedImageCrop = transformedImageCrop.to(device).unsqueeze(0)
         
         with torch.no_grad():
-            # Get embedding
-            embedding = model.forward_once(transformedImageCrop)
+            if resnet:
+                # Get embedding
+                embedding = model(transformedImageCrop)
+            else:
+                # Get embedding
+                embedding = model.forward_once(transformedImageCrop)
         embedding = embedding.cpu().numpy()
         
         # Store
