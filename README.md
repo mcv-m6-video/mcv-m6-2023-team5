@@ -2,6 +2,10 @@
 
 This repository contains Team 5's solutions for projects of the [MCV's M6 module: Video Analysis](https://mcv.uab.cat/m6-video-analysis/).
 
+Final presentation link:
+
+[Presentation](https://docs.google.com/presentation/d/1Jl5WLRuIwnY6Ip7QlZw6WKBd-P9SIOdw5bN7PJKLQSQ/edit?usp=sharing)
+
 There are 5 weekly projects:
 1. Evaluation metrics
 2. Background estimation
