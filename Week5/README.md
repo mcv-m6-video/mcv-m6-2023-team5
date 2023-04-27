@@ -13,7 +13,7 @@ Here's a brief description of the two main tasks we worked on during this week, 
 		* ``sort.py``:  script (original implementation: [https://github.com/abewley/sort](https://github.com/abewley/sort)) to track and obtain the results using SORT method.
 		* ``overlap_tracking.py``: script to assign an ID to each bounding box detection by using the highest overlapping of bounding boxes through frames method.
 		* ``computeOFtracking.py``: script that was used to obtain the tracking from the detections using the optical flow-based method. It uses the GMFlow pretrained model to predict the optical flows.
-	    * DEEPSORT??
+	        * ``deep_sort_app.py``: script used to obtain the tracking from deepsort project [https://github.com/nwojke/deep_sort](https://github.com/nwojke/deep_sort))
     * Post-processing:
 	    * ``postProcessMultiObject.py``:  this script is used to remove static car tracks and detections of small area (smaller than 50 $pixel^2$ area).
 
