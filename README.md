@@ -21,7 +21,17 @@ git clone cv-m6-video/mcv-m6-2023-team5.git
 cd WeekX X=1,2,3,...
 ```
 
-Dependencies for individual weeks are listed in corresponding weeks' `README` files.
+Dependencies:
+
+* Pytorch and Torchvision
+* Sklearn
+* Pandas
+* Numpy
+* Matplotlib
+* Seaborn
+* pytorch_metric_learning
+* OpenCV
+* Tensorflow
 
 ## Usage and documentation
 

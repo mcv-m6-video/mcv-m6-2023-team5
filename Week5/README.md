@@ -1,6 +1,6 @@
 # Week 5
 
-During the fifth and final week of the project, our focus was on Multi-Target Multi-Camera (MTMC) tracking. To accomplish this, we initially used the finetuned DETR model for object detection, as we did in weeks 3 and 4. We then performed Multi-Target Single-Camera (MTSC) tracking and post-processed the results by removing static cars, as we did in previous weeks. Finally, we employed metric learning to combine the different camera tracks using various ReId methods such as Clusters or Voting to obtain our task results. Our methods and performance were evaluated in the CVPR 2022 AI City Challenge.
+During the fifth and final week of the project, our focus was on Multi-Target Multi-Camera (MTMC) tracking. To accomplish this, we initially used the finetuned DETR model for object detection, as we did in weeks 3 and 4. We then performed Multi-Target Single-Camera (MTSC) tracking and post-processed the results by removing static cars, as we did in previous weeks. Finally, we employed metric learning to combine the different camera tracks using various ReId methods such as Clusters or Voting to obtain our task results. Our methods and performance were evaluated in the [CVPR 2022 AI City Challenge](https://www.aicitychallenge.org/2022-data-and-evaluation/).
 
 All the scripts have an example of usage in their respective `main` function.
 
