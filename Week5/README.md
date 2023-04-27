@@ -15,7 +15,7 @@ Here's a brief description of the two main tasks we worked on during this week, 
 		* ``computeOFtracking.py``: script that was used to obtain the tracking from the detections using the optical flow-based method. It uses the GMFlow pretrained model to predict the optical flows.
 		* ``deep_sort_app.py``: script used to obtain the tracking from deepsort project [https://github.com/nwojke/deep_sort](https://github.com/nwojke/deep_sort))
     * Post-processing:
-	    * ``postProcessMultiObject.py``:  this script is used to remove static car tracks and detections of small area (smaller than 50 $pixel^2$ area).
+	    * ``postProcessMultiObject.py``:  this script is used to remove static car tracks and detections with a small area (less than 50 $pixel^2$) or those outside of the region of interest (ROI)
 
 * **Task 2**: Multi-Target Multi-Camera (MTMC tracking): In this task, we tracked multiple objects across multiple cameras by combining the results of multiple MTSC trackers. The task involved training a model to extract feature vectors for each object and using metric learning to match objects across cameras. The relevant scripts are:
 	* Metric Learning to get car feature vectors:
