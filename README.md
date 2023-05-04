@@ -6,7 +6,10 @@ Final presentation link:
 
 [Presentation](https://docs.google.com/presentation/d/1Jl5WLRuIwnY6Ip7QlZw6WKBd-P9SIOdw5bN7PJKLQSQ/edit?usp=sharing)
 
-[Report](https://www.overleaf.com/6621534489syssvvsnkyjx)
+Final report link:
+
+[Report Overleaf](https://www.overleaf.com/6621534489syssvvsnkyjx)
+[Report PDF]()
 
 There are 5 weekly projects:
 1. Evaluation metrics
